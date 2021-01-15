@@ -1,4 +1,4 @@
-use crate::schema::StitchMessage;
+use crate::schema::ConnectionMessage;
 use async_std::net::SocketAddr;
 use async_std::pin::Pin;
 use bytes::{Buf, BytesMut};
@@ -14,14 +14,14 @@ use protobuf::well_known_types::Any;
 
 const BUFFER_SIZE: usize = 8192;
 
-pub struct StitchConnectionReader {
+pub struct ConnectionReader {
     local_addr: SocketAddr,
     peer_addr: SocketAddr,
     read_stream: Box<dyn AsyncRead + Send + Sync + Unpin>,
     pending_read: Option<BytesMut>,
 }
 
-impl StitchConnectionReader {
+impl ConnectionReader {
     pub fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
@@ -44,7 +44,7 @@ impl StitchConnectionReader {
     }
 }
 
-impl Stream for StitchConnectionReader {
+impl Stream for ConnectionReader {
     type Item = Any;
 
     fn poll_next(mut self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -80,7 +80,7 @@ impl Stream for StitchConnectionReader {
                         buffer.resize(bytes_read, 0);
                         debug!("{:?}", buffer.as_ref());
 
-                        match StitchMessage::parse_from_bytes(buffer.as_ref()) {
+                        match ConnectionMessage::parse_from_bytes(buffer.as_ref()) {
                             Ok(mut data) => {
                                 let serialized_size = data.compute_size();
                                 debug!("Deserialized message of size {} bytes", serialized_size);

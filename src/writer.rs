@@ -1,4 +1,4 @@
-use crate::schema::StitchMessage;
+use crate::schema::ConnectionMessage;
 use async_channel::RecvError;
 use async_std::net::SocketAddr;
 use async_std::pin::Pin;
@@ -10,14 +10,14 @@ use protobuf::Message;
 pub use futures::SinkExt;
 pub use futures::StreamExt;
 
-pub struct StitchConnectionWriter {
+pub struct ConnectionWriter {
     local_addr: SocketAddr,
     peer_addr: SocketAddr,
     write_stream: Box<dyn AsyncWrite + Send + Sync + Unpin>,
-    pending_write: Option<StitchMessage>,
+    pending_write: Option<ConnectionMessage>,
 }
 
-impl StitchConnectionWriter {
+impl ConnectionWriter {
     pub fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
@@ -40,7 +40,7 @@ impl StitchConnectionWriter {
     }
 }
 
-impl<T: Message> Sink<T> for StitchConnectionWriter {
+impl<T: Message> Sink<T> for ConnectionWriter {
     type Error = RecvError;
 
     fn poll_ready(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -55,7 +55,7 @@ impl<T: Message> Sink<T> for StitchConnectionWriter {
 
     fn start_send(mut self: Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
         debug!("Preparing message to be sent next");
-        let stitch_msg: StitchMessage = StitchMessage::from_msg(item);
+        let stitch_msg: ConnectionMessage = ConnectionMessage::from_msg(item);
         self.pending_write.replace(stitch_msg);
 
         Ok(())

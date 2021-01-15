@@ -13,7 +13,7 @@ env_logger = "0.7"
 log = "0.4"
 protobuf = "2.18.1"
 
-stitch-net = { path = "../../" }
+connect = { path = "../../" }
 
 [build-dependencies]
 protobuf-codegen-pure = "2.18.1"

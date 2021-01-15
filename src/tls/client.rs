@@ -1,76 +1,65 @@
-use async_channel::{Receiver, Sender};
-use async_std::io::*;
-use async_std::net::*;
 use async_std::task;
 use async_tls::TlsConnector;
-use futures_util::io::AsyncReadExt;
 use log::*;
 
-use crate::registry::StitchRegistry;
-use crate::StitchNetClient;
-use crate::{channel_factory, StitchMessage};
-use async_std::sync::{Arc, Condvar, Mutex};
+use crate::Connection;
+use async_std::net::{TcpStream, SocketAddr, ToSocketAddrs};
+use async_tls::client;
+use async_tls::server;
+use futures::AsyncReadExt;
 
-impl StitchNetClient {
+pub enum TlsConnectionMetadata {
+    Client { local_addr: SocketAddr, peer_addr: SocketAddr, stream: client::TlsStream<TcpStream> },
+    Server { local_addr: SocketAddr, peer_addr: SocketAddr, stream: server::TlsStream<TcpStream> },
+}
+
+impl Connection {
     pub fn tls_client<A: ToSocketAddrs + std::fmt::Display>(
         ip_addrs: A,
         domain: &str,
         connector: TlsConnector,
-    ) -> Result<Self> {
-        Self::tls_client_with_bound(ip_addrs, domain, connector, None)
-    }
-
-    pub fn tls_client_with_bound<A: ToSocketAddrs + std::fmt::Display>(
-        ip_addrs: A,
-        domain: &str,
-        connector: TlsConnector,
-        cap: Option<usize>,
-    ) -> Result<Self> {
+    ) -> anyhow::Result<Self> {
         let stream = task::block_on(TcpStream::connect(&ip_addrs))?;
-        stream.set_nodelay(true)?;
         info!("Established client TCP connection to {}", ip_addrs);
+        stream.set_nodelay(true)?;
 
-        Self::tls_client_from_parts(stream, domain, connector, channel_factory(cap))
-    }
-
-    pub fn tls_client_from_parts(
-        stream: TcpStream,
-        domain: &str,
-        connector: TlsConnector,
-        (tls_write_sender, tls_write_receiver): (Sender<StitchMessage>, Receiver<StitchMessage>),
-    ) -> Result<Self> {
-        let local_addr = stream.local_addr()?;
+        let local_addr = stream.peer_addr()?;
         let peer_addr = stream.peer_addr()?;
 
-        let encrypted_stream = task::block_on(connector.connect(domain, stream))?;
-        let (read_stream, write_stream) = encrypted_stream.split();
+        let encrypted_stream: client::TlsStream<TcpStream> =
+            task::block_on(connector.connect(domain, stream))?;
         info!("Completed TLS handshake with {}", peer_addr);
 
-        let registry: StitchRegistry = crate::registry::new();
-        let read_readiness = Arc::new((Mutex::new(false), Condvar::new()));
-        let write_readiness = Arc::new((Mutex::new(false), Condvar::new()));
+        Ok(Self::from(TlsConnectionMetadata::Client { local_addr, peer_addr, stream: encrypted_stream }))
+    }
+}
 
-        let read_task = task::spawn(crate::tasks::read_from_stream(
-            registry.clone(),
-            read_stream,
-            read_readiness.clone(),
-        ));
+impl From<TlsConnectionMetadata> for Connection {
+    fn from(metadata: TlsConnectionMetadata) -> Self {
+        match metadata {
+            TlsConnectionMetadata::Client { local_addr, peer_addr, stream } => {
+                let (read_stream, write_stream) = stream.split();
 
-        let write_task = task::spawn(crate::tasks::write_to_stream(
-            tls_write_receiver.clone(),
-            write_stream,
-            write_readiness.clone(),
-        ));
+                Self::new(
+                    local_addr,
+                    peer_addr,
+                    Box::new(read_stream),
+                    Box::new(write_stream),
+                )
+            },
 
-        Ok(Self {
-            local_addr,
-            peer_addr,
-            registry,
-            stream_writer_chan: (tls_write_sender, tls_write_receiver),
-            read_readiness,
-            write_readiness,
-            read_task,
-            write_task,
-        })
+            TlsConnectionMetadata::Server { local_addr, peer_addr, stream } => {
+                let (read_stream, write_stream) = stream.split();
+
+                Self::new(
+                    local_addr,
+                    peer_addr,
+                    Box::new(read_stream),
+                    Box::new(write_stream),
+                )
+            }
+        }
+
+
     }
 }

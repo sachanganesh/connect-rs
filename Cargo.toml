@@ -3,6 +3,8 @@ name = "connect"
 version = "0.0.2"
 authors = ["Sachandhan Ganesh <sachan.ganesh@gmail.com>"]
 edition = "2018"
+description = "message queue abstraction over async network streams"
+
 
 [dependencies]
 anyhow = "1.0.31"

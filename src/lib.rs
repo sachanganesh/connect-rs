@@ -1,35 +1,24 @@
+mod reader;
 pub mod schema;
 pub mod tcp;
-// @todo pub mod tls;
-mod reader;
+pub mod tls;
 mod writer;
 
-pub use crate::reader::StitchConnectionReader;
-use crate::schema::StitchMessage;
-pub use crate::writer::StitchConnectionWriter;
-use async_channel::RecvError;
+pub use crate::reader::ConnectionReader;
+pub use crate::writer::ConnectionWriter;
 use async_std::net::SocketAddr;
-use async_std::pin::Pin;
-use bytes::{Buf, BytesMut};
-use futures::task::{Context, Poll};
-use futures::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, Sink, Stream};
-use log::*;
-use protobuf::Message;
-use std::convert::TryInto;
+use futures::{AsyncRead, AsyncWrite};
+pub use futures::{SinkExt, StreamExt};
 
-pub use futures::SinkExt;
-pub use futures::StreamExt;
-use protobuf::well_known_types::Any;
-
-pub struct StitchConnection {
+pub struct Connection {
     local_addr: SocketAddr,
     peer_addr: SocketAddr,
-    reader: StitchConnectionReader,
-    writer: StitchConnectionWriter,
+    reader: ConnectionReader,
+    writer: ConnectionWriter,
 }
 
 #[allow(dead_code)]
-impl StitchConnection {
+impl Connection {
     pub(crate) fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
@@ -39,8 +28,8 @@ impl StitchConnection {
         Self {
             local_addr,
             peer_addr,
-            reader: StitchConnectionReader::new(local_addr, peer_addr, read_stream),
-            writer: StitchConnectionWriter::new(local_addr, peer_addr, write_stream),
+            reader: ConnectionReader::new(local_addr, peer_addr, read_stream),
+            writer: ConnectionWriter::new(local_addr, peer_addr, write_stream),
         }
     }
 
@@ -52,11 +41,11 @@ impl StitchConnection {
         self.peer_addr.clone()
     }
 
-    pub fn split(self) -> (StitchConnectionReader, StitchConnectionWriter) {
+    pub fn split(self) -> (ConnectionReader, ConnectionWriter) {
         (self.reader, self.writer)
     }
 
-    pub fn join(reader: StitchConnectionReader, writer: StitchConnectionWriter) -> Self {
+    pub fn join(reader: ConnectionReader, writer: ConnectionWriter) -> Self {
         Self {
             local_addr: reader.local_addr(),
             peer_addr: reader.peer_addr(),
@@ -65,11 +54,11 @@ impl StitchConnection {
         }
     }
 
-    pub fn reader(&mut self) -> &mut StitchConnectionReader {
+    pub fn reader(&mut self) -> &mut ConnectionReader {
         &mut self.reader
     }
 
-    pub fn writer(&mut self) -> &mut StitchConnectionWriter {
+    pub fn writer(&mut self) -> &mut ConnectionWriter {
         &mut self.writer
     }
 

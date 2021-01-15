@@ -2,10 +2,10 @@ mod schema;
 
 use crate::schema::hello_world::HelloWorld;
 use async_std::task;
+use connect::tcp::TcpServer;
+use connect::{SinkExt, StreamExt};
 use log::*;
 use std::env;
-use stitch_net::tcp::StitchTcpServer;
-use stitch_net::{SinkExt, StreamExt};
 
 #[async_std::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // create a server
-    let mut server = StitchTcpServer::new(ip_address)?;
+    let mut server = TcpServer::new(ip_address)?;
 
     // handle server connections
     // wait for a connection to come in and be accepted

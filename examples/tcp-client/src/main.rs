@@ -1,10 +1,10 @@
 pub mod schema;
 
 use crate::schema::hello_world::HelloWorld;
+use connect::{Connection, SinkExt, StreamExt};
 use log::*;
 use protobuf::well_known_types::Any;
 use std::env;
-use stitch_net::{SinkExt, StitchConnection, StreamExt};
 
 #[async_std::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // create a client connection to the server
-    let mut conn = StitchConnection::tcp_client(ip_address)?;
+    let mut conn = Connection::tcp_client(ip_address)?;
 
     // send a message to the server
     let raw_msg = String::from("Hello world");

@@ -24,7 +24,7 @@
 // const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_2_19_0;
 
 #[derive(PartialEq,Clone,Default)]
-pub struct StitchMessage {
+pub struct ConnectionMessage {
     // message fields
     pub payload: ::protobuf::SingularPtrField<::protobuf::well_known_types::Any>,
     // special fields
@@ -32,14 +32,14 @@ pub struct StitchMessage {
     pub cached_size: ::protobuf::CachedSize,
 }
 
-impl<'a> ::std::default::Default for &'a StitchMessage {
-    fn default() -> &'a StitchMessage {
-        <StitchMessage as ::protobuf::Message>::default_instance()
+impl<'a> ::std::default::Default for &'a ConnectionMessage {
+    fn default() -> &'a ConnectionMessage {
+        <ConnectionMessage as ::protobuf::Message>::default_instance()
     }
 }
 
-impl StitchMessage {
-    pub fn new() -> StitchMessage {
+impl ConnectionMessage {
+    pub fn new() -> ConnectionMessage {
         ::std::default::Default::default()
     }
 
@@ -77,7 +77,7 @@ impl StitchMessage {
     }
 }
 
-impl ::protobuf::Message for StitchMessage {
+impl ::protobuf::Message for ConnectionMessage {
     fn is_initialized(&self) -> bool {
         for v in &self.payload {
             if !v.is_initialized() {
@@ -151,8 +151,8 @@ impl ::protobuf::Message for StitchMessage {
         Self::descriptor_static()
     }
 
-    fn new() -> StitchMessage {
-        StitchMessage::new()
+    fn new() -> ConnectionMessage {
+        ConnectionMessage::new()
     }
 
     fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
@@ -161,46 +161,46 @@ impl ::protobuf::Message for StitchMessage {
             let mut fields = ::std::vec::Vec::new();
             fields.push(::protobuf::reflect::accessor::make_singular_ptr_field_accessor::<_, ::protobuf::types::ProtobufTypeMessage<::protobuf::well_known_types::Any>>(
                 "payload",
-                |m: &StitchMessage| { &m.payload },
-                |m: &mut StitchMessage| { &mut m.payload },
+                |m: &ConnectionMessage| { &m.payload },
+                |m: &mut ConnectionMessage| { &mut m.payload },
             ));
-            ::protobuf::reflect::MessageDescriptor::new_pb_name::<StitchMessage>(
-                "StitchMessage",
+            ::protobuf::reflect::MessageDescriptor::new_pb_name::<ConnectionMessage>(
+                "ConnectionMessage",
                 fields,
                 file_descriptor_proto()
             )
         })
     }
 
-    fn default_instance() -> &'static StitchMessage {
-        static instance: ::protobuf::rt::LazyV2<StitchMessage> = ::protobuf::rt::LazyV2::INIT;
-        instance.get(StitchMessage::new)
+    fn default_instance() -> &'static ConnectionMessage {
+        static instance: ::protobuf::rt::LazyV2<ConnectionMessage> = ::protobuf::rt::LazyV2::INIT;
+        instance.get(ConnectionMessage::new)
     }
 }
 
-impl ::protobuf::Clear for StitchMessage {
+impl ::protobuf::Clear for ConnectionMessage {
     fn clear(&mut self) {
         self.payload.clear();
         self.unknown_fields.clear();
     }
 }
 
-impl ::std::fmt::Debug for StitchMessage {
+impl ::std::fmt::Debug for ConnectionMessage {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         ::protobuf::text_format::fmt(self, f)
     }
 }
 
-impl ::protobuf::reflect::ProtobufValue for StitchMessage {
+impl ::protobuf::reflect::ProtobufValue for ConnectionMessage {
     fn as_ref(&self) -> ::protobuf::reflect::ReflectValueRef {
         ::protobuf::reflect::ReflectValueRef::Message(self)
     }
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\rmessage.proto\x12\x07message\x1a\x19google/protobuf/any.proto\"C\n\r\
-    StitchMessage\x120\n\x07payload\x18\x01\x20\x01(\x0b2\x14.google.protobu\
-    f.AnyR\x07payloadB\0:\0B\0b\x06proto3\
+    \n\rmessage.proto\x12\x07message\x1a\x19google/protobuf/any.proto\"G\n\
+    \x11ConnectionMessage\x120\n\x07payload\x18\x01\x20\x01(\x0b2\x14.google\
+    .protobuf.AnyR\x07payloadB\0:\0B\0b\x06proto3\
 ";
 
 static file_descriptor_proto_lazy: ::protobuf::rt::LazyV2<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::rt::LazyV2::INIT;

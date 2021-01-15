@@ -51,17 +51,17 @@ impl Stream for ConnectionReader {
         let mut buffer = BytesMut::new();
         buffer.resize(BUFFER_SIZE, 0);
 
-        debug!("Starting new read loop for {}", self.local_addr);
+        trace!("Starting new read loop for {}", self.local_addr);
         loop {
             trace!("Reading from the stream");
             match futures::executor::block_on(self.read_stream.read(&mut buffer)) {
                 Ok(mut bytes_read) => {
                     if bytes_read > 0 {
-                        debug!("Read {} bytes from the network stream", bytes_read)
+                        trace!("Read {} bytes from the network stream", bytes_read)
                     }
 
                     if let Some(mut pending_buf) = self.pending_read.take() {
-                        debug!("Prepending broken data ({} bytes) encountered from earlier read of network stream", pending_buf.len());
+                        trace!("Prepending broken data ({} bytes) encountered from earlier read of network stream", pending_buf.len());
                         bytes_read += pending_buf.len();
 
                         pending_buf.unsplit(buffer);
@@ -72,18 +72,17 @@ impl Stream for ConnectionReader {
                         format!("Conversion from usize ({}) to u64 failed", bytes_read).as_str(),
                     );
                     while bytes_read_u64 > 0 {
-                        debug!(
+                        trace!(
                             "{} bytes from network stream still unprocessed",
                             bytes_read_u64
                         );
 
                         buffer.resize(bytes_read, 0);
-                        debug!("{:?}", buffer.as_ref());
 
                         match ConnectionMessage::parse_from_bytes(buffer.as_ref()) {
                             Ok(mut data) => {
                                 let serialized_size = data.compute_size();
-                                debug!("Deserialized message of size {} bytes", serialized_size);
+                                trace!("Deserialized message of size {} bytes", serialized_size);
 
                                 buffer.advance(serialized_size as usize);
 
@@ -95,9 +94,9 @@ impl Stream for ConnectionReader {
                                     .as_str(),
                                 );
                                 bytes_read_u64 -= serialized_size_u64;
-                                debug!("{} bytes still unprocessed", bytes_read_u64);
+                                trace!("{} bytes still unprocessed", bytes_read_u64);
 
-                                debug!("Sending deserialized message downstream");
+                                trace!("Sending deserialized message downstream");
                                 return Poll::Ready(Some(data.take_payload()));
                             }
 

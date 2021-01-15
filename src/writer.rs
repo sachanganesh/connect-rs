@@ -45,16 +45,16 @@ impl<T: Message> Sink<T> for ConnectionWriter {
 
     fn poll_ready(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         if self.pending_write.is_some() {
-            debug!("Connection not ready to send message yet, waiting for prior message");
+            trace!("Connection not ready to send message yet, waiting for prior message");
             Poll::Pending
         } else {
-            debug!("Connection ready to send message");
+            trace!("Connection ready to send message");
             Poll::Ready(Ok(()))
         }
     }
 
     fn start_send(mut self: Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
-        debug!("Preparing message to be sent next");
+        trace!("Preparing message to be sent next");
         let stitch_msg: ConnectionMessage = ConnectionMessage::from_msg(item);
         self.pending_write.replace(stitch_msg);
 
@@ -66,33 +66,33 @@ impl<T: Message> Sink<T> for ConnectionWriter {
         _cx: &mut Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
         if let Some(pending_msg) = self.pending_write.take() {
-            debug!("Send pending message");
+            trace!("Send pending message");
             if let Ok(buffer) = pending_msg.write_to_bytes() {
                 let msg_size = buffer.len();
-                debug!("{} bytes to be sent over network connection", msg_size);
+                trace!("{} bytes to be sent over network connection", msg_size);
 
-                debug!("{:?}", buffer.as_slice());
+                trace!("{:?}", buffer.as_slice());
 
                 return if let Ok(_) =
                     futures::executor::block_on(self.write_stream.write_all(buffer.as_slice()))
                 {
                     if let Ok(_) = futures::executor::block_on(self.write_stream.flush()) {
-                        debug!("Sent message of {} bytes", msg_size);
+                        trace!("Sent message of {} bytes", msg_size);
                         Poll::Ready(Ok(()))
                     } else {
-                        debug!("Encountered error while flushing queued bytes to network stream");
+                        trace!("Encountered error while flushing queued bytes to network stream");
                         Poll::Ready(Err(RecvError))
                     }
                 } else {
-                    debug!("Encountered error when writing to network stream");
+                    error!("Encountered error when writing to network stream");
                     Poll::Ready(Err(RecvError))
                 };
             } else {
-                debug!("Encountered error when serializing message to bytes");
+                error!("Encountered error when serializing message to bytes");
                 return Poll::Ready(Err(RecvError));
             }
         } else {
-            debug!("No message to send over connection");
+            trace!("No message to send over connection");
         }
 
         Poll::Ready(Ok(()))

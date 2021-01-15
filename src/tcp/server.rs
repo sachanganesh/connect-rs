@@ -36,7 +36,7 @@ impl Stream for TcpServer {
             );
             Poll::Ready(Some(Connection::from(conn)))
         } else {
-            debug!("Shutting TCP server down at {}", self.local_addrs);
+            info!("Shutting TCP server down at {}", self.local_addrs);
             Poll::Ready(None)
         }
     }

@@ -53,11 +53,11 @@ impl Stream for TlsServer {
                     stream: tls_stream,
                 })))
             } else {
-                debug!("Could not encrypt connection with TLS from {}", peer_addr);
+                warn!("Could not encrypt connection with TLS from {}", peer_addr);
                 Poll::Pending
             }
         } else {
-            debug!("Shutting TLS server down at {}", self.local_addrs);
+            info!("Shutting TLS server down at {}", self.local_addrs);
             Poll::Ready(None)
         }
     }

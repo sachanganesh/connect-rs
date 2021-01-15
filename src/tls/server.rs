@@ -46,7 +46,7 @@ impl Stream for TlsServer {
             debug!("Received connection attempt from {}", peer_addr);
 
             if let Ok(tls_stream) = futures::executor::block_on(self.acceptor.accept(tcp_stream)) {
-                debug!("Established TLS connection from {}", peer_addr);
+                debug!("Completed TLS handshake with {}", peer_addr);
                 Poll::Ready(Some(Connection::from(TlsConnectionMetadata::Server {
                     local_addr,
                     peer_addr,

@@ -9,11 +9,9 @@ description = "message queue abstraction over async network streams"
 [dependencies]
 anyhow = "1.0.31"
 async-channel = "1.4.0"
-async-std = { version = "1.6.2", features = ["tokio02", "unstable"] }
+async-std = { version = "1.6.2", features = ["unstable"] }
 async-tls = { version = "0.9.0", default-features = false, features = ["client", "server"]}
-async-trait = "0.1.39"
 bytes = "0.5.5"
-dashmap = "3.11.10"
 futures = "0.3.8"
 log = "0.4"
 protobuf = "2.18.1"

@@ -1,6 +1,10 @@
+mod schema;
+
+use crate::schema::hello_world::HelloWorld;
+use connect::tls::rustls::ClientConfig;
+use connect::{Connection, SinkExt, StreamExt};
 use log::*;
-use seam_channel::net::tls::rustls::ClientConfig;
-use seam_channel::net::{StitchClient, StitchNetClient};
+use protobuf::well_known_types::Any;
 use std::env;
 
 #[async_std::main]
@@ -22,22 +26,24 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid cert"))?;
 
     // create a client connection to the server
-    let dist_chan = StitchNetClient::tls_client(ip_addr, &domain, client_config.into())?;
-
-    // create a channel for String messages on the TCP connection
-    let (sender, receiver) = dist_chan.bounded::<String>(Some(100));
-
-    // alert the connection that you are ready to read and write messages
-    dist_chan.ready()?;
+    let mut conn = Connection::tls_client(ip_addr, &domain, client_config.into())?;
 
     // send a message to the server
-    let msg = String::from("Hello world");
-    info!("Sending message: {}", msg);
-    sender.send(msg).await?;
+    let raw_msg = String::from("Hello world");
+    info!("Sending message: {}", raw_msg);
+
+    let mut msg = HelloWorld::new();
+    msg.set_message(raw_msg);
+
+    conn.writer().send(msg).await?;
 
     // wait for the server to reply with an ack
-    if let Ok(msg) = receiver.recv().await {
-        info!("Received reply: {}", msg);
+    while let Some(reply) = conn.reader().next().await {
+        info!("Received message");
+
+        let msg: HelloWorld = Any::unpack(&reply)?.unwrap();
+
+        info!("Unpacked reply: {}", msg.get_message());
     }
 
     Ok(())

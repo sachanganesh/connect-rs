@@ -1,8 +1,12 @@
+mod schema;
+
+use crate::schema::hello_world::HelloWorld;
 use async_std::{io, task};
+use connect::tls::rustls::internal::pemfile::{certs, rsa_private_keys};
+use connect::tls::rustls::{NoClientAuth, ServerConfig};
+use connect::tls::TlsServer;
+use connect::{SinkExt, StreamExt};
 use log::*;
-use seam_channel::net::tls::rustls::internal::pemfile::{certs, rsa_private_keys};
-use seam_channel::net::tls::rustls::{NoClientAuth, ServerConfig};
-use seam_channel::net::{StitchClient, StitchNetServer};
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
@@ -26,31 +30,31 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
 
     // create a server
-    let (_server, conns) = StitchNetServer::tls_server(ip_address, config.into())?;
+    let mut server = TlsServer::new(ip_address, config.into())?;
 
     // handle server connections
     // wait for a connection to come in and be accepted
-    while let Ok(conn) = conns.recv().await {
-        info!("Handling connection: {}", conn.peer_addr());
+    while let Some(mut conn) = server.next().await {
+        info!("Handling connection from {}", conn.peer_addr());
 
-        // register for String-typed messages
-        let (sender, receiver) = conn.unbounded::<String>();
-
-        // let the connection know you are ready to send and receive messages
-        conn.ready()
-            .expect("could not ready the connection for reading and writing");
-
-        // handle String messages
         task::spawn(async move {
-            // for every String message
-            while let Ok(msg) = receiver.recv().await {
-                info!("Echoing message: {}", msg);
+            while let Some(msg) = conn.reader().next().await {
+                if msg.is::<HelloWorld>() {
+                    if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
+                        info!(
+                            "Received a message \"{}\" from {}",
+                            contents.get_message(),
+                            conn.peer_addr()
+                        );
 
-                let response = format!("{}, right back at you!", msg);
-
-                // Send the message back to its source
-                if let Err(err) = sender.send(response).await {
-                    error!("Could not echo message: {:#?}", err);
+                        conn.writer()
+                            .send(contents)
+                            .await
+                            .expect("Could not send message back to source connection");
+                        info!("Sent message back to original sender");
+                    }
+                } else {
+                    error!("Received a message of unknown type")
                 }
             }
         });

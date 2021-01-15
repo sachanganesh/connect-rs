@@ -3,14 +3,22 @@ use async_tls::TlsConnector;
 use log::*;
 
 use crate::Connection;
-use async_std::net::{TcpStream, SocketAddr, ToSocketAddrs};
+use async_std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use async_tls::client;
 use async_tls::server;
 use futures::AsyncReadExt;
 
 pub enum TlsConnectionMetadata {
-    Client { local_addr: SocketAddr, peer_addr: SocketAddr, stream: client::TlsStream<TcpStream> },
-    Server { local_addr: SocketAddr, peer_addr: SocketAddr, stream: server::TlsStream<TcpStream> },
+    Client {
+        local_addr: SocketAddr,
+        peer_addr: SocketAddr,
+        stream: client::TlsStream<TcpStream>,
+    },
+    Server {
+        local_addr: SocketAddr,
+        peer_addr: SocketAddr,
+        stream: server::TlsStream<TcpStream>,
+    },
 }
 
 impl Connection {
@@ -30,14 +38,22 @@ impl Connection {
             task::block_on(connector.connect(domain, stream))?;
         info!("Completed TLS handshake with {}", peer_addr);
 
-        Ok(Self::from(TlsConnectionMetadata::Client { local_addr, peer_addr, stream: encrypted_stream }))
+        Ok(Self::from(TlsConnectionMetadata::Client {
+            local_addr,
+            peer_addr,
+            stream: encrypted_stream,
+        }))
     }
 }
 
 impl From<TlsConnectionMetadata> for Connection {
     fn from(metadata: TlsConnectionMetadata) -> Self {
         match metadata {
-            TlsConnectionMetadata::Client { local_addr, peer_addr, stream } => {
+            TlsConnectionMetadata::Client {
+                local_addr,
+                peer_addr,
+                stream,
+            } => {
                 let (read_stream, write_stream) = stream.split();
 
                 Self::new(
@@ -46,9 +62,13 @@ impl From<TlsConnectionMetadata> for Connection {
                     Box::new(read_stream),
                     Box::new(write_stream),
                 )
-            },
+            }
 
-            TlsConnectionMetadata::Server { local_addr, peer_addr, stream } => {
+            TlsConnectionMetadata::Server {
+                local_addr,
+                peer_addr,
+                stream,
+            } => {
                 let (read_stream, write_stream) = stream.split();
 
                 Self::new(
@@ -59,7 +79,5 @@ impl From<TlsConnectionMetadata> for Connection {
                 )
             }
         }
-
-
     }
 }

@@ -57,6 +57,7 @@ impl Stream for TlsServer {
                 Poll::Pending
             }
         } else {
+            debug!("Shutting TLS server down at {}", self.local_addrs);
             Poll::Ready(None)
         }
     }

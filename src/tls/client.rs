@@ -1,4 +1,3 @@
-use async_std::task;
 use async_tls::TlsConnector;
 use log::*;
 
@@ -27,7 +26,7 @@ impl Connection {
         domain: &str,
         connector: TlsConnector,
     ) -> anyhow::Result<Self> {
-        let stream = task::block_on(TcpStream::connect(&ip_addrs))?;
+        let stream = futures::executor::block_on(TcpStream::connect(&ip_addrs))?;
         info!("Established client TCP connection to {}", ip_addrs);
         stream.set_nodelay(true)?;
 
@@ -35,7 +34,7 @@ impl Connection {
         let peer_addr = stream.peer_addr()?;
 
         let encrypted_stream: client::TlsStream<TcpStream> =
-            task::block_on(connector.connect(domain, stream))?;
+            futures::executor::block_on(connector.connect(domain, stream))?;
         info!("Completed TLS handshake with {}", peer_addr);
 
         Ok(Self::from(TlsConnectionMetadata::Client {

@@ -1,4 +1,3 @@
-use async_std::task;
 use log::*;
 
 use crate::Connection;
@@ -6,7 +5,7 @@ use async_std::net::{TcpStream, ToSocketAddrs};
 
 impl Connection {
     pub fn tcp_client<A: ToSocketAddrs + std::fmt::Display>(ip_addrs: A) -> anyhow::Result<Self> {
-        let stream = task::block_on(TcpStream::connect(&ip_addrs))?;
+        let stream = futures::executor::block_on(TcpStream::connect(&ip_addrs))?;
         info!("Established client TCP connection to {}", ip_addrs);
 
         stream.set_nodelay(true)?;

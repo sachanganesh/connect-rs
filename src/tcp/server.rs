@@ -1,7 +1,6 @@
 use crate::Connection;
 use async_std::net::{SocketAddr, TcpListener, ToSocketAddrs};
 use async_std::pin::Pin;
-use async_std::task;
 use futures::task::{Context, Poll};
 use futures::{Stream, StreamExt};
 use log::*;
@@ -14,7 +13,7 @@ pub struct TcpServer {
 
 impl TcpServer {
     pub fn new<A: ToSocketAddrs + std::fmt::Display>(ip_addrs: A) -> anyhow::Result<Self> {
-        let listener = task::block_on(TcpListener::bind(&ip_addrs))?;
+        let listener = futures::executor::block_on(TcpListener::bind(&ip_addrs))?;
         info!("Started TCP server at {}", &ip_addrs);
 
         Ok(Self {

@@ -3,7 +3,6 @@ use crate::Connection;
 use async_std::net::*;
 use async_std::pin::Pin;
 use async_std::prelude::*;
-use async_std::task;
 use async_tls::TlsAcceptor;
 use futures::task::{Context, Poll};
 use log::*;
@@ -20,7 +19,7 @@ impl TlsServer {
         ip_addrs: A,
         acceptor: TlsAcceptor,
     ) -> anyhow::Result<Self> {
-        let listener = task::block_on(TcpListener::bind(ip_addrs))?;
+        let listener = futures::executor::block_on(TcpListener::bind(ip_addrs))?;
         info!("Started TLS server at {}", listener.local_addr()?);
 
         Ok(Self {
@@ -54,6 +53,7 @@ impl Stream for TlsServer {
                 })))
             } else {
                 warn!("Could not encrypt connection with TLS from {}", peer_addr);
+                // @otodo close the tcp-stream connection
                 Poll::Pending
             }
         } else {

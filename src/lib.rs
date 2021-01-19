@@ -64,10 +64,12 @@ impl Connection {
 
     pub async fn close(self) -> SocketAddr {
         let peer_addr = self.peer_addr();
+        let (reader, writer) = self.split();
 
-        drop(self.reader);
-        // self.writer.close().await;
-        drop(self.writer);
+        drop(reader);
+
+        // writer.close().await;
+        drop(writer);
 
         return peer_addr;
     }

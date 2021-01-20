@@ -138,7 +138,7 @@ impl Stream for ConnectionReader {
                 // Close the stream
                 Poll::Ready(Err(_e)) => {
                     self.close_stream();
-                    Poll::Ready(None)
+                    return Poll::Ready(None)
                 }
             }
         }

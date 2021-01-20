@@ -58,8 +58,8 @@ impl From<TlsConnectionMetadata> for Connection {
                 Self::new(
                     local_addr,
                     peer_addr,
-                    Box::new(read_stream),
-                    Box::new(write_stream),
+                    Box::pin(read_stream),
+                    Box::pin(write_stream),
                 )
             }
 
@@ -73,8 +73,8 @@ impl From<TlsConnectionMetadata> for Connection {
                 Self::new(
                     local_addr,
                     peer_addr,
-                    Box::new(read_stream),
-                    Box::new(write_stream),
+                    Box::pin(read_stream),
+                    Box::pin(write_stream),
                 )
             }
         }

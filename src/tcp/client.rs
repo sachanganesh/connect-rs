@@ -28,8 +28,8 @@ impl From<TcpStream> for Connection {
         Self::new(
             local_addr,
             peer_addr,
-            Box::new(stream),
-            Box::new(write_stream),
+            Box::pin(stream),
+            Box::pin(write_stream),
         )
     }
 }

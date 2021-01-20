@@ -5,7 +5,7 @@ use protobuf::well_known_types::Any;
 use protobuf::Message;
 
 impl ConnectionMessage {
-    pub(crate) fn from_msg<T: Message>(msg: T) -> Self {
+    pub(crate) fn from_msg<M: Message>(msg: M) -> Self {
         let mut sm = Self::new();
         let payload = Any::pack(&msg).expect("Protobuf Message could not be packed into Any type");
 

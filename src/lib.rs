@@ -6,7 +6,7 @@ mod writer;
 
 pub use crate::reader::ConnectionReader;
 pub use crate::writer::ConnectionWriter;
-use async_std::net::SocketAddr;
+use async_std::{net::SocketAddr, pin::Pin};
 use futures::{AsyncRead, AsyncWrite};
 pub use futures::{SinkExt, StreamExt};
 
@@ -22,8 +22,8 @@ impl Connection {
     pub(crate) fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
-        read_stream: Box<dyn AsyncRead + Send + Sync + Unpin>,
-        write_stream: Box<dyn AsyncWrite + Send + Sync + Unpin>,
+        read_stream: Pin<Box<dyn AsyncRead + Send + Sync>>,
+        write_stream: Pin<Box<dyn AsyncWrite + Send + Sync>>,
     ) -> Self {
         Self {
             local_addr,

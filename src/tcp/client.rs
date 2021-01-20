@@ -4,8 +4,8 @@ use crate::Connection;
 use async_std::net::{TcpStream, ToSocketAddrs};
 
 impl Connection {
-    pub fn tcp_client<A: ToSocketAddrs + std::fmt::Display>(ip_addrs: A) -> anyhow::Result<Self> {
-        let stream = futures::executor::block_on(TcpStream::connect(&ip_addrs))?;
+    pub async fn tcp_client<A: ToSocketAddrs + std::fmt::Display>(ip_addrs: A) -> anyhow::Result<Self> {
+        let stream = TcpStream::connect(&ip_addrs).await?;
         info!("Established client TCP connection to {}", ip_addrs);
 
         stream.set_nodelay(true)?;

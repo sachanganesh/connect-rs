@@ -21,20 +21,19 @@ pub enum TlsConnectionMetadata {
 }
 
 impl Connection {
-    pub fn tls_client<A: ToSocketAddrs + std::fmt::Display>(
+    pub async fn tls_client<A: ToSocketAddrs + std::fmt::Display>(
         ip_addrs: A,
         domain: &str,
         connector: TlsConnector,
     ) -> anyhow::Result<Self> {
-        let stream = futures::executor::block_on(TcpStream::connect(&ip_addrs))?;
+        let stream = TcpStream::connect(&ip_addrs).await?;
         info!("Established client TCP connection to {}", ip_addrs);
         stream.set_nodelay(true)?;
 
         let local_addr = stream.peer_addr()?;
         let peer_addr = stream.peer_addr()?;
 
-        let encrypted_stream: client::TlsStream<TcpStream> =
-            futures::executor::block_on(connector.connect(domain, stream))?;
+        let encrypted_stream: client::TlsStream<TcpStream> = connector.connect(domain, stream).await?;
         info!("Completed TLS handshake with {}", peer_addr);
 
         Ok(Self::from(TlsConnectionMetadata::Client {

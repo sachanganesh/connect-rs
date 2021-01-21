@@ -30,13 +30,13 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
 
     // create a server
-    let server = TlsServer::new(ip_address, config.into()).await?;
+    let mut server = TlsServer::new(ip_address, config.into()).await?;
 
     // handle server connections
     // wait for a connection to come in and be accepted
     loop {
-        match server.accept().await {
-            Ok(Some(mut conn)) => {
+        match server.next().await {
+            Some(mut conn) => {
                 info!("Handling connection from {}", conn.peer_addr());
 
                 task::spawn(async move {
@@ -62,10 +62,7 @@ async fn main() -> anyhow::Result<()> {
                 });
             }
 
-            Ok(None) => (),
-
-            Err(e) => {
-                error!("Encountered error when accepting connection: {}", e);
+            None => {
                 break
             }
         }

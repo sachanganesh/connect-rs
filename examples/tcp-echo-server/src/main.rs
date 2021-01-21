@@ -23,11 +23,11 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // create a server
-    let mut server = TcpServer::new(ip_address)?;
+    let server = TcpServer::new(ip_address).await?;
 
     // handle server connections
     // wait for a connection to come in and be accepted
-    while let Some(mut conn) = server.next().await {
+    while let Ok(mut conn) = server.accept().await {
         info!("Handling connection from {}", conn.peer_addr());
 
         task::spawn(async move {

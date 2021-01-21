@@ -15,11 +15,11 @@ use protobuf::well_known_types::Any;
 const BUFFER_SIZE: usize = 8192;
 
 pub struct ConnectionReader {
-    local_addr:   SocketAddr,
-    peer_addr:    SocketAddr,
-    read_stream:  Pin<Box<dyn AsyncRead + Send + Sync>>,
+    local_addr: SocketAddr,
+    peer_addr: SocketAddr,
+    read_stream: Pin<Box<dyn AsyncRead + Send + Sync>>,
     pending_read: Option<BytesMut>,
-    closed:       bool,
+    closed: bool,
 }
 
 impl ConnectionReader {
@@ -76,7 +76,7 @@ impl Stream for ConnectionReader {
                         trace!("Read {} bytes from the network stream", bytes_read)
                     } else if self.pending_read.is_none() {
                         self.close_stream();
-                        return Poll::Ready(None)
+                        return Poll::Ready(None);
                     }
 
                     if let Some(mut pending_buf) = self.pending_read.take() {
@@ -138,7 +138,7 @@ impl Stream for ConnectionReader {
                 // Close the stream
                 Poll::Ready(Err(_e)) => {
                     self.close_stream();
-                    return Poll::Ready(None)
+                    return Poll::Ready(None);
                 }
             }
         }

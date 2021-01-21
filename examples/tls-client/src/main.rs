@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::InvalidInput, "invalid cert"))?;
 
     // create a client connection to the server
-    let mut conn = Connection::tls_client(ip_addr, &domain, client_config.into())?;
+    let mut conn = Connection::tls_client(ip_addr, &domain, client_config.into()).await?;
 
     // send a message to the server
     let raw_msg = String::from("Hello world");

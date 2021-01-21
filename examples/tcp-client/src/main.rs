@@ -21,16 +21,16 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // create a client connection to the server
-    let mut conn = Connection::tcp_client(ip_address)?;
+    let mut conn = Connection::tcp_client(ip_address).await?;
 
     // send a message to the server
     let raw_msg = String::from("Hello world");
-    info!("Sending message: {}", raw_msg);
 
     let mut msg = HelloWorld::new();
-    msg.set_message(raw_msg);
+    msg.set_message(raw_msg.clone());
 
     conn.writer().send(msg).await?;
+    info!("Sent message: {}", raw_msg);
 
     // wait for the server to reply with an ack
     while let Some(reply) = conn.reader().next().await {

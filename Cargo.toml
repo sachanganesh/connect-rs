@@ -13,7 +13,6 @@ async-std = { version = "1.6.2", features = ["unstable"] }
 async-tls = { version = "0.9.0", default-features = false, features = ["client", "server"]}
 bytes = "0.5.5"
 futures = "0.3.8"
-futures-lite = "1.11.3"
 log = "0.4"
 protobuf = "2.18.1"
 rustls = "0.18.0"

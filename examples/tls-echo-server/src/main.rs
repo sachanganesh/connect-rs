@@ -30,34 +30,45 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
 
     // create a server
-    let mut server = TlsServer::new(ip_address, config.into())?;
+    let server = TlsServer::new(ip_address, config.into()).await?;
 
     // handle server connections
     // wait for a connection to come in and be accepted
-    while let Some(mut conn) = server.next().await {
-        info!("Handling connection from {}", conn.peer_addr());
+    loop {
+        match server.accept().await {
+            Ok(Some(mut conn)) => {
+                info!("Handling connection from {}", conn.peer_addr());
 
-        task::spawn(async move {
-            while let Some(msg) = conn.reader().next().await {
-                if msg.is::<HelloWorld>() {
-                    if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
-                        info!(
-                            "Received a message \"{}\" from {}",
-                            contents.get_message(),
-                            conn.peer_addr()
-                        );
+                task::spawn(async move {
+                    while let Some(msg) = conn.reader().next().await {
+                        if msg.is::<HelloWorld>() {
+                            if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
+                                info!(
+                                    "Received a message \"{}\" from {}",
+                                    contents.get_message(),
+                                    conn.peer_addr()
+                                );
 
-                        conn.writer()
-                            .send(contents)
-                            .await
-                            .expect("Could not send message back to source connection");
-                        info!("Sent message back to original sender");
+                                conn.writer()
+                                    .send(contents)
+                                    .await
+                                    .expect("Could not send message back to source connection");
+                                info!("Sent message back to original sender");
+                            }
+                        } else {
+                            error!("Received a message of unknown type")
+                        }
                     }
-                } else {
-                    error!("Received a message of unknown type")
-                }
+                });
             }
-        });
+
+            Ok(None) => (),
+
+            Err(e) => {
+                error!("Encountered error when accepting connection: {}", e);
+                break
+            }
+        }
     }
 
     Ok(())

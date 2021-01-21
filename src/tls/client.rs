@@ -33,7 +33,8 @@ impl Connection {
         let local_addr = stream.peer_addr()?;
         let peer_addr = stream.peer_addr()?;
 
-        let encrypted_stream: client::TlsStream<TcpStream> = connector.connect(domain, stream).await?;
+        let encrypted_stream: client::TlsStream<TcpStream> =
+            connector.connect(domain, stream).await?;
         info!("Completed TLS handshake with {}", peer_addr);
 
         Ok(Self::from(TlsConnectionMetadata::Client {

@@ -36,18 +36,23 @@ impl Stream for TcpServer {
     fn poll_next(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match futures::executor::block_on(self.listener.incoming().next()) {
             Some(Ok(tcp_stream)) => {
-                let peer_addr = tcp_stream.peer_addr().expect("Could not retrieve peer IP address");
+                let peer_addr = tcp_stream
+                    .peer_addr()
+                    .expect("Could not retrieve peer IP address");
                 debug!("Received connection attempt from {}", peer_addr);
 
                 Poll::Ready(Some(Connection::from(tcp_stream)))
-            },
+            }
 
             Some(Err(e)) => {
-                error!("Encountered error when trying to accept new connection {}", e);
+                error!(
+                    "Encountered error when trying to accept new connection {}",
+                    e
+                );
                 Poll::Pending
             }
 
-            None => Poll::Ready(None)
+            None => Poll::Ready(None),
         }
     }
 }

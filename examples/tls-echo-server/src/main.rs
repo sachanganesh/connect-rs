@@ -62,9 +62,7 @@ async fn main() -> anyhow::Result<()> {
                 });
             }
 
-            None => {
-                break
-            }
+            None => break,
         }
     }
 

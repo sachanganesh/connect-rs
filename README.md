@@ -10,12 +10,8 @@ By using a message queue, crate users can focus on sending and receiving message
 |-----------------------------------------------------	|--------	|
 | [TCP Client](examples/tcp-client)      	            |    ✓   	|
 | [TCP Server](examples/tcp-echo-server) 	            |    ✓   	|
-| UDP Client                                          	|        	|
-| UDP Server                                          	|        	|
 | [TLS Client](examples/tls-client)      	            |    ✓   	|
 | [TLS Server](examples/tls-echo-server) 	            |    ✓   	|
-| QUIC Client                                         	|        	|
-| QUIC Server                                         	|        	|
 | SCTP Client                                         	|        	|
 | SCTP Server                                         	|        	|
 | DTLS-SCTP Client                                    	|        	|

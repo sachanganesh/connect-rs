@@ -5,6 +5,15 @@ authors = ["Sachandhan Ganesh <sachan.ganesh@gmail.com>"]
 edition = "2018"
 description = "message queue abstraction over async network streams"
 
+[workspace]
+
+members = [
+    "examples/tcp-client",
+    "examples/tcp-echo-server",
+    "examples/tls-client",
+    "examples/tls-echo-server",
+]
+
 
 [dependencies]
 anyhow = "1.0.31"

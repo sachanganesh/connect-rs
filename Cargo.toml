@@ -6,7 +6,6 @@ edition = "2018"
 description = "message queue abstraction over async network streams"
 
 [workspace]
-
 members = [
     "examples/tcp-client",
     "examples/tcp-echo-server",

@@ -1,5 +1,5 @@
 mod reader;
-pub mod schema;
+pub(crate) mod schema;
 pub mod tcp;
 pub mod tls;
 mod writer;

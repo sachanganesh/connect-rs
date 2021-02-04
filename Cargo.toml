@@ -1,10 +1,10 @@
 [package]
 name = "connect"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2018"
 authors = ["Sachandhan Ganesh <sachan.ganesh@gmail.com>"]
 description = "message queue abstraction over async network streams"
-keywords = ["async", "network", "message", "queue", "aio"]
+keywords = ["async", "network", "message-queue", "mq", "aio"]
 categories = ["asynchronous", "network-programming", "rust-patterns", "encoding"]
 repository = "https://github.com/sachanganesh/connect-rs"
 readme = "README.md"

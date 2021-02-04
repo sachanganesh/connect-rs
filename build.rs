@@ -1,12 +1,14 @@
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    protobuf_codegen_pure::Codegen::new()
-        .out_dir("src/schema")
-        .inputs(&["schema/message.proto"])
-        .include("schema")
-        .run()
-        .expect("Codegen failed.");
+use std::env;
 
-    println!("cargo:rerun-if-changed=build.rs");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if Ok("dev".to_owned()) == env::var("PROFILE") {
+        protobuf_codegen_pure::Codegen::new()
+            .out_dir("src/schema")
+            .inputs(&["schema/message.proto"])
+            .include("schema")
+            .run()
+            .expect("Codegen failed.");
+    }
 
     Ok(())
 }

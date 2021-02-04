@@ -1,5 +1,13 @@
 # connect-rs
 
+[![Crates.io][crates-badge]][crates-url]
+[![Docs.rs][docs-badge]][docs-url]
+
+[crates-badge]: https://img.shields.io/crates/v/connect.svg
+[crates-url]: https://crates.io/crates/connect
+[docs-badge]: https://docs.rs/connect/badge.svg
+[docs-url]: https://docs.rs/connect
+
 This Rust crate provides a reliable, fault-tolerant, and brokerless message-queue abstraction over
 asynchronous network streams.
 

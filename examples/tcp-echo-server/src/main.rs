@@ -2,7 +2,7 @@ mod schema;
 
 use crate::schema::hello_world::HelloWorld;
 use async_std::task;
-use connect::tcp::TcpServer;
+use connect::tcp::TcpListener;
 use connect::{SinkExt, StreamExt};
 use log::*;
 use std::env;
@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // create a server
-    let mut server = TcpServer::new(ip_address).await?;
+    let mut server = TcpListener::bind(ip_address).await?;
 
     // handle server connections
     // wait for a connection to come in and be accepted

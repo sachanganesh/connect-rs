@@ -1,26 +1,25 @@
+use async_std::net::{TcpStream, ToSocketAddrs};
+use async_tls::client;
 use async_tls::TlsConnector;
+use futures::AsyncReadExt;
 use log::*;
 
+use crate::tls::TlsConnectionMetadata;
 use crate::Connection;
-use async_std::net::{SocketAddr, TcpStream, ToSocketAddrs};
-use async_tls::client;
-use async_tls::server;
-use futures::AsyncReadExt;
-
-pub enum TlsConnectionMetadata {
-    Client {
-        local_addr: SocketAddr,
-        peer_addr: SocketAddr,
-        stream: client::TlsStream<TcpStream>,
-    },
-    Server {
-        local_addr: SocketAddr,
-        peer_addr: SocketAddr,
-        stream: server::TlsStream<TcpStream>,
-    },
-}
 
 impl Connection {
+    /// Creates a [`Connection`] that uses a TLS transport
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    ///
+    /// ```ignore
+    /// let mut conn = Connection::tls_client("127.0.0.1:3456", "localhost", client_config.into()).await?;
+    /// ```
+    ///
+    /// Please see the [tls-client](https://github.com/sachanganesh/connect-rs/blob/main/examples/tls-client/src/main.rs)
+    /// example program for a more thorough showcase.
     pub async fn tls_client<A: ToSocketAddrs + std::fmt::Display>(
         ip_addrs: A,
         domain: &str,
@@ -46,6 +45,7 @@ impl Connection {
 }
 
 impl From<TlsConnectionMetadata> for Connection {
+    /// Creates a [`Connection`] using a TLS transport from [`TlsConnectionMetadata`].
     fn from(metadata: TlsConnectionMetadata) -> Self {
         match metadata {
             TlsConnectionMetadata::Client {
@@ -63,7 +63,7 @@ impl From<TlsConnectionMetadata> for Connection {
                 )
             }
 
-            TlsConnectionMetadata::Server {
+            TlsConnectionMetadata::Listener {
                 local_addr,
                 peer_addr,
                 stream,

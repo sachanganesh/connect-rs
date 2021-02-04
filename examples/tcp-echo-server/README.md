@@ -1,8 +1,8 @@
-# seam-channel tcp-echo-server example
+# connect tcp-echo-server example
 
 This example program will:
 
-1. Bind to an IP address
+1. Bind to an IP address and port
 2. Accept any number of TCP connections
 3. Handle each connection by:
     1. Waiting for `String` messages to be received

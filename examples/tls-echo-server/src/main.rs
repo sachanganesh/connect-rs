@@ -4,7 +4,7 @@ use crate::schema::hello_world::HelloWorld;
 use async_std::{io, task};
 use connect::tls::rustls::internal::pemfile::{certs, rsa_private_keys};
 use connect::tls::rustls::{NoClientAuth, ServerConfig};
-use connect::tls::TlsServer;
+use connect::tls::TlsListener;
 use connect::{SinkExt, StreamExt};
 use log::*;
 use std::env;
@@ -30,40 +30,34 @@ async fn main() -> anyhow::Result<()> {
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
 
     // create a server
-    let mut server = TlsServer::new(ip_address, config.into()).await?;
+    let mut server = TlsListener::bind(ip_address, config.into()).await?;
 
     // handle server connections
     // wait for a connection to come in and be accepted
-    loop {
-        match server.next().await {
-            Some(mut conn) => {
-                info!("Handling connection from {}", conn.peer_addr());
+    while let Some(mut conn) = server.next().await {
+        info!("Handling connection from {}", conn.peer_addr());
 
-                task::spawn(async move {
-                    while let Some(msg) = conn.reader().next().await {
-                        if msg.is::<HelloWorld>() {
-                            if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
-                                info!(
-                                    "Received a message \"{}\" from {}",
-                                    contents.get_message(),
-                                    conn.peer_addr()
-                                );
+        task::spawn(async move {
+            while let Some(msg) = conn.reader().next().await {
+                if msg.is::<HelloWorld>() {
+                    if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
+                        info!(
+                            "Received a message \"{}\" from {}",
+                            contents.get_message(),
+                            conn.peer_addr()
+                        );
 
-                                conn.writer()
-                                    .send(contents)
-                                    .await
-                                    .expect("Could not send message back to source connection");
-                                info!("Sent message back to original sender");
-                            }
-                        } else {
-                            error!("Received a message of unknown type")
-                        }
+                        conn.writer()
+                            .send(contents)
+                            .await
+                            .expect("Could not send message back to source connection");
+                        info!("Sent message back to original sender");
                     }
-                });
+                } else {
+                    error!("Received a message of unknown type")
+                }
             }
-
-            None => break,
-        }
+        });
     }
 
     Ok(())

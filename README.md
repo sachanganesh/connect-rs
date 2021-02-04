@@ -16,3 +16,6 @@ By using a message queue, crate users can focus on sending and receiving message
 | SCTP Server                                         	|        	|
 | DTLS-SCTP Client                                    	|        	|
 | DTLS-SCTP Server                                    	|        	|
+
+
+## Why Protobuf?

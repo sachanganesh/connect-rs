@@ -4,6 +4,15 @@ use crate::Connection;
 use async_std::net::{TcpStream, ToSocketAddrs};
 
 impl Connection {
+    /// Creates a [`Connection`] that uses a TCP transport
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    ///
+    /// ```ignore
+    /// let mut conn = Connection::tcp_client("127.0.0.1:3456").await?;
+    /// ```
     pub async fn tcp_client<A: ToSocketAddrs + std::fmt::Display>(
         ip_addrs: A,
     ) -> anyhow::Result<Self> {
@@ -16,6 +25,7 @@ impl Connection {
 }
 
 impl From<TcpStream> for Connection {
+    /// Creates a [`Connection`] using a TCP transport from an async [`TcpStream`].
     fn from(stream: TcpStream) -> Self {
         let write_stream = stream.clone();
 

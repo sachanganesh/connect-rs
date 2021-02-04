@@ -12,7 +12,26 @@ pub use futures::SinkExt;
 pub use futures::StreamExt;
 use protobuf::well_known_types::Any;
 
+/// A default buffer size to read in bytes and then deserialize as messages
 const BUFFER_SIZE: usize = 8192;
+
+/// An interface to read messages from the network connection
+///
+/// Implements the [`Stream`] trait to asynchronously read messages from the network connection.
+///
+/// # Example
+///
+/// Basic usage:
+///
+/// ```ignore
+/// while let Some(msg) = reader.next().await {
+///   // handle the received message
+/// }
+/// ```
+///
+/// Please see the [tcp-client](https://github.com/sachanganesh/connect-rs/blob/main/examples/tcp-client/)
+/// example program or other client example programs for a more thorough showcase.
+///
 
 pub struct ConnectionReader {
     local_addr: SocketAddr,
@@ -23,6 +42,8 @@ pub struct ConnectionReader {
 }
 
 impl ConnectionReader {
+    /// Creates a new [`ConnectionReader`] from an [`AsyncRead`] trait object and the local and peer
+    /// socket metadata
     pub fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
@@ -37,14 +58,17 @@ impl ConnectionReader {
         }
     }
 
+    /// Get the local IP address and port
     pub fn local_addr(&self) -> SocketAddr {
         self.local_addr.clone()
     }
 
+    /// Get the peer IP address and port
     pub fn peer_addr(&self) -> SocketAddr {
         self.peer_addr.clone()
     }
 
+    /// Check if the [`Stream`] of messages from the network is closed
     pub fn is_closed(&self) -> bool {
         self.closed
     }

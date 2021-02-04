@@ -1,4 +1,4 @@
-# seam-channel tls-client example
+# connect tls-client example
 
 This example program will:
 

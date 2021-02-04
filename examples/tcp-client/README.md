@@ -1,4 +1,4 @@
-# seam-channel tcp-client example
+# connect tcp-client example
 
 This example program will:
 

@@ -5,5 +5,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .include("schema")
         .run()
         .expect("Codegen failed.");
+
+    println!("cargo:rerun-if-changed=build.rs");
+
     Ok(())
 }

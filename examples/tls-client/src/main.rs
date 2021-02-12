@@ -1,10 +1,6 @@
-mod schema;
-
-use crate::schema::hello_world::HelloWorld;
 use connect::tls::rustls::ClientConfig;
-use connect::{Connection, SinkExt, StreamExt};
+use connect::{ConnectDatagram, Connection, SinkExt, StreamExt};
 use log::*;
-use protobuf::well_known_types::Any;
 use std::env;
 
 #[async_std::main]
@@ -29,21 +25,20 @@ async fn main() -> anyhow::Result<()> {
     let mut conn = Connection::tls_client(ip_addr, &domain, client_config.into()).await?;
 
     // send a message to the server
-    let raw_msg = String::from("Hello world");
-    info!("Sending message: {}", raw_msg);
+    let msg = String::from("Hello world");
+    info!("Sending message: {}", msg);
 
-    let mut msg = HelloWorld::new();
-    msg.set_message(raw_msg);
-
-    conn.writer().send(msg).await?;
+    let envelope = ConnectDatagram::new(65535, msg.into_bytes())?;
+    conn.writer().send(envelope).await?;
 
     // wait for the server to reply with an ack
-    while let Some(reply) = conn.reader().next().await {
+    if let Some(mut reply) = conn.reader().next().await {
         info!("Received message");
 
-        let msg: HelloWorld = Any::unpack(&reply)?.unwrap();
+        let data = reply.take_data().unwrap();
+        let msg = String::from_utf8(data)?;
 
-        info!("Unpacked reply: {}", msg.get_message());
+        info!("Unpacked reply: {}", msg);
     }
 
     Ok(())

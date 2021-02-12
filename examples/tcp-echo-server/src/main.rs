@@ -1,9 +1,6 @@
-mod schema;
-
-use crate::schema::hello_world::HelloWorld;
 use async_std::task;
 use connect::tcp::TcpListener;
-use connect::{SinkExt, StreamExt};
+use connect::{ConnectDatagram, SinkExt, StreamExt};
 use log::*;
 use std::env;
 
@@ -31,23 +28,36 @@ async fn main() -> anyhow::Result<()> {
         info!("Handling connection from {}", conn.peer_addr());
 
         task::spawn(async move {
-            while let Some(msg) = conn.reader().next().await {
-                if msg.is::<HelloWorld>() {
-                    if let Ok(Some(contents)) = msg.unpack::<HelloWorld>() {
-                        info!(
-                            "Received a message \"{}\" from {}",
-                            contents.get_message(),
-                            conn.peer_addr()
-                        );
+            while let Some(mut envelope) = conn.reader().next().await {
+                // handle message based on intended recipient
+                if envelope.recipient() == 65535 {
+                    // if recipient is 65535, we do custom processing
+                    let data = envelope.take_data().unwrap();
+                    let msg =
+                        String::from_utf8(data).expect("could not build String from payload bytes");
+                    info!("Received a message \"{}\" from {}", msg, conn.peer_addr());
 
-                        conn.writer()
-                            .send(contents)
-                            .await
-                            .expect("Could not send message back to source connection");
-                        info!("Sent message back to original sender");
-                    }
+                    let reply = ConnectDatagram::new(envelope.recipient(), msg.into_bytes())
+                        .expect("could not construct new datagram from built String");
+
+                    conn.writer()
+                        .send(reply)
+                        .await
+                        .expect("Could not send message back to source connection");
+                    info!("Sent message back to original sender");
                 } else {
-                    error!("Received a message of unknown type")
+                    // if recipient is anything else, we just send it back
+                    warn!(
+                        "Received a message for unknown recipient {} from {}",
+                        envelope.recipient(),
+                        conn.peer_addr()
+                    );
+
+                    conn.writer()
+                        .send(envelope)
+                        .await
+                        .expect("Could not send message back to source connection");
+                    info!("Sent message back to original sender");
                 }
             }
         });

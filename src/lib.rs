@@ -24,12 +24,13 @@
 //! Until the Rust ecosystem around reflection improves, the crate will use Protobuf to fill the
 //! void.
 
+pub mod protocol;
 mod reader;
-pub(crate) mod schema;
 pub mod tcp;
 pub mod tls;
 mod writer;
 
+pub use crate::protocol::{ConnectDatagram, DatagramEmptyError};
 pub use crate::reader::ConnectionReader;
 pub use crate::writer::ConnectionWriter;
 use async_std::{net::SocketAddr, pin::Pin};

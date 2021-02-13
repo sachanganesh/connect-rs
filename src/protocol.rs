@@ -21,6 +21,7 @@ impl std::fmt::Display for DatagramEmptyError {
 
 /// A simple packet format containing a version, recipient tag, and message body.
 ///
+#[derive(Clone)]
 pub struct ConnectDatagram {
     version: u8,
     recipient: u16,
@@ -84,7 +85,7 @@ impl ConnectDatagram {
         3 + data_len
     }
 
-    /// Constructs a serialized representation of the datagram.
+    /// Constructs a serialized representation of the datagram contents.
     ///
     pub(crate) fn bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.size());
@@ -101,7 +102,7 @@ impl ConnectDatagram {
 
     /// Serializes the datagram.
     ///
-    pub fn encode(&self) -> Vec<u8> {
+    pub fn encode(self) -> Vec<u8> {
         let size: u32 = (self.size()) as u32;
 
         let mut bytes = Vec::from(size.to_be_bytes());

@@ -3,6 +3,8 @@ use std::io::Read;
 
 const VERSION: u8 = 1;
 
+/// Encountered when trying to construct a [`ConnectDatagram`] with an empty message body.
+///
 #[derive(Debug, Clone)]
 pub struct DatagramEmptyError;
 
@@ -17,6 +19,8 @@ impl std::fmt::Display for DatagramEmptyError {
     }
 }
 
+/// A simple packet format containing a version, recipient tag, and message body.
+///
 pub struct ConnectDatagram {
     version: u8,
     recipient: u16,
@@ -24,6 +28,14 @@ pub struct ConnectDatagram {
 }
 
 impl ConnectDatagram {
+    /// Creates a new [`ConnectDatagram`] based on an intended recipient and message body.
+    ///
+    /// This will return a [`DatagramEmptyError`] if the `data` parameter contains no bytes, or
+    /// in other words, when there is no message body.
+    ///
+    /// The version field is decided by the library version and used to maintain backwards
+    /// compatibility with previous datagram formats.
+    ///
     pub fn new(recipient: u16, data: Vec<u8>) -> Result<Self, DatagramEmptyError> {
         if data.len() > 0 {
             Ok(Self {
@@ -36,22 +48,32 @@ impl ConnectDatagram {
         }
     }
 
+    /// Gets the version number of the datagram.
+    ///
     pub fn version(&self) -> u8 {
         self.version
     }
 
+    /// Gets the recipient of the datagram.
+    ///
     pub fn recipient(&self) -> u16 {
         self.recipient
     }
 
+    /// Gets the message body of the datagram.
+    ///
     pub fn data(&self) -> Option<&Vec<u8>> {
         self.data.as_ref()
     }
 
+    /// Takes ownership of the message body of the datagram.
+    ///
     pub fn take_data(&mut self) -> Option<Vec<u8>> {
         self.data.take()
     }
 
+    /// Calculates the serialized byte-size of the datagram.
+    ///
     pub fn size(&self) -> usize {
         let data_len = if let Some(data) = self.data() {
             data.len()
@@ -62,7 +84,9 @@ impl ConnectDatagram {
         3 + data_len
     }
 
-    pub fn bytes(&self) -> Vec<u8> {
+    /// Constructs a serialized representation of the datagram.
+    ///
+    pub(crate) fn bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.size());
 
         bytes.extend(&self.version.to_be_bytes());
@@ -75,6 +99,8 @@ impl ConnectDatagram {
         return bytes;
     }
 
+    /// Serializes the datagram.
+    ///
     pub fn encode(&self) -> Vec<u8> {
         let size: u32 = (self.size()) as u32;
 
@@ -84,6 +110,8 @@ impl ConnectDatagram {
         return bytes;
     }
 
+    /// Deserializes the datagram from a `source`.
+    ///
     pub fn decode(source: &mut (dyn Read + Send + Sync)) -> anyhow::Result<Self> {
         // payload size
         let mut payload_size_bytes: [u8; 4] = [0; 4];

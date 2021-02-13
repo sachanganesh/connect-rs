@@ -12,14 +12,14 @@ impl Connection {
     ///
     /// # Example
     ///
+    /// Please see the [tls-client](https://github.com/sachanganesh/connect-rs/blob/main/examples/tls-client/src/main.rs)
+    /// example program for a more thorough showcase.
+    ///
     /// Basic usage:
     ///
     /// ```ignore
     /// let mut conn = Connection::tls_client("127.0.0.1:3456", "localhost", client_config.into()).await?;
     /// ```
-    ///
-    /// Please see the [tls-client](https://github.com/sachanganesh/connect-rs/blob/main/examples/tls-client/src/main.rs)
-    /// example program for a more thorough showcase.
     pub async fn tls_client<A: ToSocketAddrs + std::fmt::Display>(
         ip_addrs: A,
         domain: &str,

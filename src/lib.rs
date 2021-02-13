@@ -26,7 +26,7 @@ mod writer;
 
 pub use crate::protocol::{ConnectDatagram, DatagramEmptyError};
 pub use crate::reader::ConnectionReader;
-pub use crate::writer::{ConnectionWriter, ConnectionWriteError};
+pub use crate::writer::{ConnectionWriteError, ConnectionWriter};
 use async_std::{net::SocketAddr, pin::Pin};
 use futures::{AsyncRead, AsyncWrite};
 pub use futures::{SinkExt, StreamExt};

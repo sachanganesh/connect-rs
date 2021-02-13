@@ -1,5 +1,5 @@
 use crate::Connection;
-use async_std::net::{SocketAddr, TcpListener as AsyncListener, ToSocketAddrs, TcpStream};
+use async_std::net::{SocketAddr, TcpListener as AsyncListener, TcpStream, ToSocketAddrs};
 use async_std::pin::Pin;
 use async_std::task::{Context, Poll};
 use async_stream::stream;
@@ -13,6 +13,9 @@ use log::*;
 /// Implements the [`Stream`] trait to asynchronously accept incoming TCP connections.
 ///
 /// # Example
+///
+/// Please see the [tcp-echo-server](https://github.com/sachanganesh/connect-rs/blob/main/examples/tcp-echo-server/src/main.rs)
+/// example program for a more thorough showcase.
 ///
 /// Basic usage:
 ///
@@ -28,7 +31,8 @@ use log::*;
 pub struct TcpListener {
     local_addrs: SocketAddr,
     // listener: AsyncListener,
-    conn_stream: Pin<Box<dyn Stream<Item = Option<Result<TcpStream, std::io::Error>>> + Send + Sync>>,
+    conn_stream:
+        Pin<Box<dyn Stream<Item = Option<Result<TcpStream, std::io::Error>>> + Send + Sync>>,
 }
 
 impl TcpListener {
@@ -100,7 +104,7 @@ impl Stream for TcpListener {
                     "Encountered error when trying to accept new connection {}",
                     err
                 );
-                Poll::Ready(None)
+                Poll::Pending
             }
 
             Poll::Ready(Some(None)) => Poll::Ready(None),

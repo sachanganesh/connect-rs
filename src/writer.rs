@@ -27,7 +27,9 @@ impl Error for ConnectionWriteError {}
 impl std::fmt::Display for ConnectionWriteError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConnectionWriteError::ConnectionClosed => formatter.write_str("cannot send message when connection is closed"),
+            ConnectionWriteError::ConnectionClosed => {
+                formatter.write_str("cannot send message when connection is closed")
+            }
             ConnectionWriteError::IoError(err) => std::fmt::Display::fmt(&err, formatter),
         }
     }

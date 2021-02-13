@@ -8,6 +8,9 @@ impl Connection {
     ///
     /// # Example
     ///
+    /// Please see the [tcp-client](https://github.com/sachanganesh/connect-rs/blob/main/examples/tcp-client/src/main.rs)
+    /// example program for a more thorough showcase.
+    ///
     /// Basic usage:
     ///
     /// ```ignore

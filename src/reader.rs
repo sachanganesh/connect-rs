@@ -1,14 +1,14 @@
+use crate::protocol::ConnectDatagram;
 use async_std::net::SocketAddr;
 use async_std::pin::Pin;
 use bytes::{Buf, BytesMut};
 use futures::task::{Context, Poll};
 use futures::{AsyncRead, Stream};
 use log::*;
+use std::io::Cursor;
 
-use crate::protocol::ConnectDatagram;
 pub use futures::SinkExt;
 pub use futures::StreamExt;
-use std::io::Cursor;
 
 /// A default buffer size to read in bytes and then deserialize as messages.
 const BUFFER_SIZE: usize = 8192;

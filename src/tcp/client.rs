@@ -4,7 +4,7 @@ use crate::Connection;
 use async_std::net::{TcpStream, ToSocketAddrs};
 
 impl Connection {
-    /// Creates a [`Connection`] that uses a TCP transport
+    /// Creates a [`Connection`] that uses a TCP transport.
     ///
     /// # Example
     ///

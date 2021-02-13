@@ -10,7 +10,7 @@ use crate::protocol::ConnectDatagram;
 pub use futures::SinkExt;
 pub use futures::StreamExt;
 
-/// An interface to write messages to the network connection
+/// An interface to write messages to the network connection.
 ///
 /// Implements the [`Sink`] trait to asynchronously write messages to the network connection.
 ///
@@ -35,7 +35,7 @@ pub struct ConnectionWriter {
 
 impl ConnectionWriter {
     /// Creates a new [`ConnectionWriter`] from an [`AsyncWrite`] trait object and the local and peer
-    /// socket metadata
+    /// socket metadata.
     pub fn new(
         local_addr: SocketAddr,
         peer_addr: SocketAddr,
@@ -50,17 +50,17 @@ impl ConnectionWriter {
         }
     }
 
-    /// Get the local IP address and port
+    /// Get the local IP address and port.
     pub fn local_addr(&self) -> SocketAddr {
         self.local_addr.clone()
     }
 
-    /// Get the peer IP address and port
+    /// Get the peer IP address and port.
     pub fn peer_addr(&self) -> SocketAddr {
         self.peer_addr.clone()
     }
 
-    /// Check if the [`Sink`] of messages to the network is closed
+    /// Check if the [`Sink`] of messages to the network is closed.
     pub fn is_closed(&self) -> bool {
         self.closed
     }

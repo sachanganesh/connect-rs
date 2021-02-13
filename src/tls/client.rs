@@ -8,7 +8,7 @@ use crate::tls::TlsConnectionMetadata;
 use crate::Connection;
 
 impl Connection {
-    /// Creates a [`Connection`] that uses a TLS transport
+    /// Creates a [`Connection`] that uses a TLS transport.
     ///
     /// # Example
     ///

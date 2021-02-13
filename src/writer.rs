@@ -1,14 +1,37 @@
-use async_channel::RecvError;
+use crate::protocol::ConnectDatagram;
 use async_std::net::SocketAddr;
 use async_std::pin::Pin;
 use futures::io::IoSlice;
 use futures::task::{Context, Poll};
 use futures::{AsyncWrite, Sink};
 use log::*;
+use std::error::Error;
 
-use crate::protocol::ConnectDatagram;
 pub use futures::SinkExt;
 pub use futures::StreamExt;
+use std::fmt::Debug;
+
+/// Encountered when there is an issue with writing messages on the network stream.
+///
+#[derive(Debug)]
+pub enum ConnectionWriteError {
+    /// Encountered when trying to send a message while the connection is closed.
+    ConnectionClosed,
+
+    /// Encountered when there is an IO-level error with the connection.
+    IoError(std::io::Error),
+}
+
+impl Error for ConnectionWriteError {}
+
+impl std::fmt::Display for ConnectionWriteError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ConnectionWriteError::ConnectionClosed => formatter.write_str("cannot send message when connection is closed"),
+            ConnectionWriteError::IoError(err) => std::fmt::Display::fmt(&err, formatter),
+        }
+    }
+}
 
 /// An interface to write messages to the network connection.
 ///
@@ -68,7 +91,7 @@ impl ConnectionWriter {
     pub(crate) fn write_pending_bytes(
         &mut self,
         cx: &mut Context<'_>,
-    ) -> Poll<Result<(), RecvError>> {
+    ) -> Poll<Result<(), ConnectionWriteError>> {
         if self.pending_writes.len() > 0 {
             let stream = self.write_stream.as_mut();
 
@@ -91,16 +114,16 @@ impl ConnectionWriter {
                             Poll::Ready(Ok(()))
                         }
 
-                        Poll::Ready(Err(_e)) => {
+                        Poll::Ready(Err(err)) => {
                             error!("Encountered error when writing to network stream");
-                            Poll::Ready(Err(RecvError))
+                            Poll::Ready(Err(ConnectionWriteError::IoError(err)))
                         }
                     }
                 }
 
-                Poll::Ready(Err(_e)) => {
+                Poll::Ready(Err(err)) => {
                     error!("Encountered error when flushing network stream");
-                    Poll::Ready(Err(RecvError))
+                    Poll::Ready(Err(ConnectionWriteError::IoError(err)))
                 }
             }
         } else {
@@ -110,12 +133,12 @@ impl ConnectionWriter {
 }
 
 impl Sink<ConnectDatagram> for ConnectionWriter {
-    type Error = RecvError;
+    type Error = ConnectionWriteError;
 
     fn poll_ready(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         if self.is_closed() {
             trace!("Connection is closed, cannot send message");
-            Poll::Ready(Err(RecvError))
+            Poll::Ready(Err(ConnectionWriteError::ConnectionClosed))
         } else {
             trace!("Connection ready to send message");
             Poll::Ready(Ok(()))
@@ -152,7 +175,7 @@ impl Sink<ConnectDatagram> for ConnectionWriter {
 
                     Poll::Ready(Ok(_)) => Poll::Ready(Ok(())),
 
-                    Poll::Ready(Err(_e)) => Poll::Ready(Err(RecvError)),
+                    Poll::Ready(Err(err)) => Poll::Ready(Err(ConnectionWriteError::IoError(err))),
                 }
             }
 

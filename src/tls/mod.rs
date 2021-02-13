@@ -12,9 +12,15 @@ pub(crate) use crate::Connection;
 pub(crate) mod client;
 pub(crate) mod listener;
 
+#[cfg(feature = "tls")]
+#[doc(cfg(feature = "tls"))]
 pub use async_tls;
+
 pub use client::*;
 pub use listener::*;
+
+#[cfg(feature = "tls")]
+#[doc(cfg(feature = "tls"))]
 pub use rustls;
 
 use async_std::net::TcpStream;

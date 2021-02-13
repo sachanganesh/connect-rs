@@ -1,26 +1,32 @@
 //! This crate provides a simple brokerless message-queue abstraction over asynchronous network
 //! streams.
 //!
+//! # Examples
+//! Please use the [example programs](https://github.com/sachanganesh/connect-rs/tree/main/examples)
+//! provided to help understand crate usage.
+//!
 //! # Why?
 //! When building networked applications, developers shouldn't have to focus on repeatedly solving
 //! the problem of reliable, fault-tolerant message delivery over byte-streams. By using a message
 //! queue abstraction, crate users can focus on core application logic and leave the low-level
 //! networking and message-queue guarantees to the abstraction.
 //!
-//! # Examples
-//! Please use the [examples](https://github.com/sachanganesh/connect-rs/tree/main/examples)
-//! provided to help understand crate usage.
-//!
+
+#![feature(doc_cfg)]
 
 mod protocol;
 mod reader;
 pub mod tcp;
+
+#[cfg(feature = "tls")]
+#[doc(cfg(feature = "tls"))]
 pub mod tls;
+
 mod writer;
 
 pub use crate::protocol::{ConnectDatagram, DatagramEmptyError};
 pub use crate::reader::ConnectionReader;
-pub use crate::writer::ConnectionWriter;
+pub use crate::writer::{ConnectionWriter, ConnectionWriteError};
 use async_std::{net::SocketAddr, pin::Pin};
 use futures::{AsyncRead, AsyncWrite};
 pub use futures::{SinkExt, StreamExt};

@@ -12,20 +12,20 @@ pub(crate) use crate::Connection;
 pub(crate) mod client;
 pub(crate) mod listener;
 
-#[cfg(feature = "tls")]
-#[doc(cfg(feature = "tls"))]
-pub use async_tls;
+use async_std::net::TcpStream;
+use async_tls::server;
+use std::net::SocketAddr;
 
 pub use client::*;
 pub use listener::*;
 
 #[cfg(feature = "tls")]
 #[doc(cfg(feature = "tls"))]
-pub use rustls;
+pub use async_tls;
 
-use async_std::net::TcpStream;
-use async_tls::server;
-use std::net::SocketAddr;
+#[cfg(feature = "tls")]
+#[doc(cfg(feature = "tls"))]
+pub use rustls;
 
 /// Used to differentiate between an outgoing connection ([`TlsConnectionMetadata::Client`]) or
 /// incoming connection listener ([`TlsConnectionMetadata::Listener`]).

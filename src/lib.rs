@@ -17,18 +17,18 @@
 mod protocol;
 mod reader;
 pub mod tcp;
+mod writer;
 
 #[cfg(feature = "tls")]
 #[doc(cfg(feature = "tls"))]
 pub mod tls;
 
-mod writer;
-
-pub use crate::protocol::{ConnectDatagram, DatagramEmptyError};
-pub use crate::reader::ConnectionReader;
-pub use crate::writer::{ConnectionWriteError, ConnectionWriter};
 use async_std::{net::SocketAddr, pin::Pin};
 use futures::{AsyncRead, AsyncWrite};
+
+pub use crate::protocol::{ConnectDatagram, DatagramError};
+pub use crate::reader::ConnectionReader;
+pub use crate::writer::{ConnectionWriteError, ConnectionWriter};
 pub use futures::{SinkExt, StreamExt};
 
 /// Wrapper around a [`ConnectionReader`] and [`ConnectionWriter`] to read and write on a network
@@ -98,3 +98,6 @@ impl Connection {
         return peer_addr;
     }
 }
+
+#[cfg(test)]
+mod tests {}

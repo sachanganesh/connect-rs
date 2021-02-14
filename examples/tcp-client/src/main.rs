@@ -28,12 +28,10 @@ async fn main() -> anyhow::Result<()> {
 
     // wait for the server to reply with an ack
     if let Some(mut reply) = conn.reader().next().await {
-        info!("Received message");
-
         let data = reply.take_data().unwrap();
         let msg = String::from_utf8(data)?;
 
-        info!("Unpacked reply: {}", msg);
+        info!("Received message: {}", msg);
     }
 
     Ok(())

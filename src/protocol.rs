@@ -9,11 +9,16 @@ const VERSION: u16 = 1;
 #[derive(Debug, Clone)]
 pub enum DatagramError {
     /// Tried to construct a [`ConnectDatagram`] with an empty message body.
-    EmptyBody,
+    EmptyMessage,
+
+    /// Tried to construct a [`ConnectDatagram`] with a message body larger than 100MB.
+    TooLargeMessage,
 
     /// Did not provide the complete byte-string necessary to deserialize the [`ConnectDatagram`].
     IncompleteBytes,
 
+    /// Wraps a [`TryFromSliceError`] encountered when the version or recipient tags cannot be
+    /// parsed from the provided bytes.
     BytesParseFail(TryFromSliceError),
 }
 
@@ -22,7 +27,8 @@ impl Error for DatagramError {}
 impl std::fmt::Display for DatagramError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            DatagramError::EmptyBody => formatter.write_str("tried to construct a `ConnectDatagram` with an empty message body"),
+            DatagramError::EmptyMessage => formatter.write_str("tried to construct a `ConnectDatagram` with an empty message body"),
+            DatagramError::TooLargeMessage => formatter.write_str("tried to construct a `ConnectDatagram` with a message body larger than 100MB"),
             DatagramError::IncompleteBytes => formatter.write_str("did not provide the complete byte-string necessary to deserialize the `ConnectDatagram`"),
             DatagramError::BytesParseFail(err) => std::fmt::Display::fmt(err, formatter),
         }
@@ -30,6 +36,9 @@ impl std::fmt::Display for DatagramError {
 }
 
 /// A simple size-prefixed packet format containing a version tag, recipient tag, and message body.
+///
+/// The version tag is decided by the library version and used to maintain backwards
+/// compatibility with previous datagram formats.
 ///
 #[derive(Clone)]
 pub struct ConnectDatagram {
@@ -41,21 +50,26 @@ pub struct ConnectDatagram {
 impl ConnectDatagram {
     /// Creates a new [`ConnectDatagram`] based on an intended recipient and message body.
     ///
-    /// This will return a [EmptyBody](`DatagramError::EmptyBody`) error if the `data` parameter
-    /// contains no bytes, or in other words, when there is no message body.
-    ///
-    /// The version field is decided by the library version and used to maintain backwards
+    /// The version tag is decided by the library version and used to maintain backwards
     /// compatibility with previous datagram formats.
     ///
+    /// This will return a [EmptyMessage](`DatagramError::EmptyMessage`) error if the `data`
+    /// parameter contains no bytes, or in other words, when there is no message body.
+    ///
+    /// This will return a [TooLargeMessage](`DatagramError::TooLargeMessage`) error if the `data`
+    /// parameter contains a buffer size greater than 100,000,000 (bytes), or 100MB.
+    ///
     pub fn new(recipient: u16, data: Vec<u8>) -> Result<Self, DatagramError> {
-        if data.len() > 0 {
+        if data.len() > 100_000_000 {
+            Err(DatagramError::TooLargeMessage)
+        } else if data.len() > 0 {
             Ok(Self {
                 version: VERSION,
                 recipient,
                 data: Some(data),
             })
         } else {
-            Err(DatagramError::EmptyBody)
+            Err(DatagramError::EmptyMessage)
         }
     }
 

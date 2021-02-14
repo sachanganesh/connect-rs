@@ -8,7 +8,7 @@
 [docs-badge]: https://docs.rs/connect/badge.svg
 [docs-url]: https://docs.rs/connect
 
-This Rust crate provides a simple brokerless message-queue abstraction over asynchronous network
+This Rust crate provides a simple, brokerless message-queue abstraction over asynchronous network
 streams.
 
 ## Examples

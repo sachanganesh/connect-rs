@@ -27,8 +27,8 @@ pub use async_tls;
 #[doc(cfg(feature = "tls"))]
 pub use rustls;
 
-/// Used to differentiate between an outgoing connection ([`TlsConnectionMetadata::Client`]) or
-/// incoming connection listener ([`TlsConnectionMetadata::Listener`]).
+/// Used to differentiate between an outgoing connection ([Client](`TlsConnectionMetadata::Client`))
+/// or incoming connection listener ([Listener](`TlsConnectionMetadata::Listener`)).
 ///
 /// The async TLS library used by this crate has two differing stream types based on whether the
 /// connection being established is either a client or server. This is to aid with handling that

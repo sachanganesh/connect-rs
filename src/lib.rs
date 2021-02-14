@@ -1,4 +1,4 @@
-//! This crate provides a simple brokerless message-queue abstraction over asynchronous network
+//! This crate provides a simple, brokerless message-queue abstraction over asynchronous network
 //! streams.
 //!
 //! # Examples

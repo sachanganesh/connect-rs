@@ -36,7 +36,7 @@ impl std::fmt::Display for ConnectionWriteError {
 
 /// An interface to write messages to the network connection.
 ///
-/// Implements the [`Sink`] trait to asynchronously write messages to the network connection.
+/// Implements the `Sink` trait to asynchronously write messages to the network connection.
 ///
 /// # Example
 ///
@@ -84,7 +84,7 @@ impl ConnectionWriter {
         self.peer_addr.clone()
     }
 
-    /// Check if the [`Sink`] of messages to the network is closed.
+    /// Check if the `Sink` of messages to the network is closed.
     pub fn is_closed(&self) -> bool {
         self.closed
     }
@@ -165,6 +165,7 @@ impl Sink<ConnectDatagram> for ConnectionWriter {
 
     fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.closed = true;
+        debug!("Closing the sink for connection with {}", self.peer_addr);
 
         match self.write_pending_bytes(cx) {
             Poll::Pending => Poll::Pending,

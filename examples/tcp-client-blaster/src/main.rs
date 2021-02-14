@@ -54,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
 
     // send messages to the server
     for i in 0..NUM_MESSAGES {
-        // info!("Sending message: {}", i);
+        info!("Sending message: {}", i);
         let data = i.to_be_bytes().to_vec();
         let envelope = ConnectDatagram::new(i, data)?;
         writer.send(envelope).await?;

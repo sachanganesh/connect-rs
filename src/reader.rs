@@ -14,7 +14,7 @@ const BUFFER_SIZE: usize = 8192;
 
 /// An interface to read messages from the network connection.
 ///
-/// Implements the [`Stream`] trait to asynchronously read messages from the network connection.
+/// Implements the `Stream` trait to asynchronously read messages from the network connection.
 ///
 /// # Example
 ///
@@ -72,13 +72,13 @@ impl ConnectionReader {
         self.peer_addr.clone()
     }
 
-    /// Check if the [`Stream`] of messages from the network is closed.
+    /// Check if the `Stream` of messages from the network is closed.
     pub fn is_closed(&self) -> bool {
         self.closed
     }
 
     pub(crate) fn close_stream(&mut self) {
-        trace!("closing the stream for connection with {}", self.peer_addr);
+        debug!("Closing the stream for connection with {}", self.peer_addr);
         self.buffer.take();
         self.pending_datagram.take();
         self.pending_read.take();

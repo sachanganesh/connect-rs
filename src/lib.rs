@@ -64,7 +64,7 @@
 //! - Use the recipient tag to signify the type of message being sent
 //!
 
-#![feature(doc_cfg)]
+// #![feature(doc_cfg)]
 
 mod protocol;
 mod reader;

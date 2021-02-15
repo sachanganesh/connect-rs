@@ -43,7 +43,7 @@ as a practical reference for crate usage.
 - TCP
     - [TCP Echo Server](https://github.com/sachanganesh/connect-rs/tree/main/examples/tcp-echo-server)
     - [TCP Client](https://github.com/sachanganesh/connect-rs/tree/main/examples/tcp-client)
-- TLS
+- TLS (enable `tls` feature flag)
     - [TLS Echo Server](https://github.com/sachanganesh/connect-rs/tree/main/examples/tls-echo-server)
     - [TLS Client](https://github.com/sachanganesh/connect-rs/tree/main/examples/tls-client)
 
@@ -73,9 +73,9 @@ library users can do interesting things such as:
 - Use the recipient tag to signify which serialization format was used for that message
 - Use the recipient tag to signify the type of message being sent
 
-## Contributing
+## Feature Flags
 
-This crate gladly accepts contributions. Don't hesitate to open issues or PRs.
+- `tls`: enables usage of tls transport functionality
 
 ## Feature Status
 
@@ -89,3 +89,7 @@ This crate gladly accepts contributions. Don't hesitate to open issues or PRs.
 | SCTP Server                                         	|        	|
 | DTLS-SCTP Client                                    	|        	|
 | DTLS-SCTP Server                                    	|        	|
+
+## Contributing
+
+This crate gladly accepts contributions. Don't hesitate to open issues or PRs.

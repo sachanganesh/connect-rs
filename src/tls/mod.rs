@@ -20,11 +20,11 @@ pub use client::*;
 pub use listener::*;
 
 #[cfg(feature = "tls")]
-#[doc(cfg(feature = "tls"))]
+// #[doc(cfg(feature = "tls"))]
 pub use async_tls;
 
 #[cfg(feature = "tls")]
-#[doc(cfg(feature = "tls"))]
+// #[doc(cfg(feature = "tls"))]
 pub use rustls;
 
 /// Used to differentiate between an outgoing connection ([Client](`TlsConnectionMetadata::Client`))

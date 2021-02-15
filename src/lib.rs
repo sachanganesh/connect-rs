@@ -33,7 +33,7 @@
 //! - TCP
 //!     - [TCP Echo Server](https://github.com/sachanganesh/connect-rs/tree/main/examples/tcp-echo-server)
 //!     - [TCP Client](https://github.com/sachanganesh/connect-rs/tree/main/examples/tcp-client)
-//! - TLS
+//! - TLS (enable `tls` feature flag)
 //!     - [TLS Echo Server](https://github.com/sachanganesh/connect-rs/tree/main/examples/tls-echo-server)
 //!     - [TLS Client](https://github.com/sachanganesh/connect-rs/tree/main/examples/tls-client)
 //!
@@ -63,6 +63,10 @@
 //! - Use the recipient tag to signify which serialization format was used for that message
 //! - Use the recipient tag to signify the type of message being sent
 //!
+//! # Feature Flags
+//!
+//! - `tls`: enables usage of tls transport functionality
+//!
 
 // #![feature(doc_cfg)]
 
@@ -72,7 +76,7 @@ pub mod tcp;
 mod writer;
 
 #[cfg(feature = "tls")]
-#[doc(cfg(feature = "tls"))]
+// #[doc(cfg(feature = "tls"))]
 pub mod tls;
 
 use async_std::{net::SocketAddr, pin::Pin};

@@ -73,6 +73,7 @@
 mod protocol;
 mod reader;
 pub mod tcp;
+pub mod udp;
 mod writer;
 
 #[cfg(feature = "tls")]
@@ -80,9 +81,11 @@ mod writer;
 pub mod tls;
 
 use async_std::{net::SocketAddr, pin::Pin};
-use futures::{AsyncRead, AsyncWrite};
+use futures::{AsyncRead, AsyncWrite, Sink, Stream};
 
-pub use crate::protocol::{ConnectDatagram, DatagramError};
+pub use crate::protocol::{
+    ConnectDatagram, DatagramError, DATAGRAM_HEADER_BYTE_SIZE, SIZE_PREFIX_BYTE_SIZE,
+};
 pub use crate::reader::ConnectionReader;
 pub use crate::writer::{ConnectionWriteError, ConnectionWriter};
 pub use futures::{SinkExt, StreamExt};
@@ -90,8 +93,10 @@ pub use futures::{SinkExt, StreamExt};
 /// Wrapper around a [`ConnectionReader`] and [`ConnectionWriter`] to read and write on a network
 /// connection.
 pub struct Connection {
-    reader: ConnectionReader,
-    writer: ConnectionWriter,
+    local_addr: SocketAddr,
+    peer_addr: SocketAddr,
+    reader: Box<dyn Stream<Item = ConnectDatagram> + Unpin + Send + Sync>,
+    writer: Box<dyn Sink<ConnectDatagram, Error = ConnectionWriteError> + Unpin + Send + Sync>,
 }
 
 #[allow(dead_code)]
@@ -103,41 +108,58 @@ impl Connection {
         write_stream: Pin<Box<dyn AsyncWrite + Send + Sync>>,
     ) -> Self {
         Self {
-            reader: ConnectionReader::new(local_addr, peer_addr, read_stream),
-            writer: ConnectionWriter::new(local_addr, peer_addr, write_stream),
+            local_addr,
+            peer_addr,
+            reader: Box::new(ConnectionReader::new(local_addr, peer_addr, read_stream)),
+            writer: Box::new(ConnectionWriter::new(local_addr, peer_addr, write_stream)),
         }
     }
 
     /// Get the local IP address and port.
     pub fn local_addr(&self) -> SocketAddr {
-        self.reader.local_addr()
+        self.local_addr.clone()
     }
 
     /// Get the peer IP address and port.
     pub fn peer_addr(&self) -> SocketAddr {
-        self.reader.peer_addr()
+        self.peer_addr.clone()
     }
 
     /// Consume the [`Connection`] to split into separate [`ConnectionReader`] and
     /// [`ConnectionWriter`] halves.
     ///
     /// [`Connection`]s are split when reading and writing must be concurrent operations.
-    pub fn split(self) -> (ConnectionReader, ConnectionWriter) {
+    pub fn split(
+        self,
+    ) -> (
+        impl Stream<Item = ConnectDatagram> + Send + Sync,
+        impl Sink<ConnectDatagram, Error = ConnectionWriteError> + Send + Sync,
+    ) {
         (self.reader, self.writer)
     }
 
     /// Re-wrap the [`ConnectionReader`] and [`ConnectionWriter`] halves into a [`Connection`].
-    pub fn join(reader: ConnectionReader, writer: ConnectionWriter) -> Self {
-        Self { reader, writer }
+    pub fn join(
+        local_addr: SocketAddr,
+        peer_addr: SocketAddr,
+        reader: impl Stream<Item = ConnectDatagram> + Unpin + Send + Sync + 'static,
+        writer: impl Sink<ConnectDatagram, Error = ConnectionWriteError> + Unpin + Send + Sync + 'static,
+    ) -> Self {
+        Self {
+            local_addr,
+            peer_addr,
+            reader: Box::new(reader),
+            writer: Box::new(writer),
+        }
     }
 
     /// Get mutable access to the underlying [`ConnectionReader`].
-    pub fn reader(&mut self) -> &mut ConnectionReader {
+    pub fn reader(&mut self) -> &mut impl Stream<Item = ConnectDatagram> {
         &mut self.reader
     }
 
     /// Get mutable access to the underlying [`ConnectionWriter`].
-    pub fn writer(&mut self) -> &mut ConnectionWriter {
+    pub fn writer(&mut self) -> &mut impl Sink<ConnectDatagram, Error = ConnectionWriteError> {
         &mut self.writer
     }
 

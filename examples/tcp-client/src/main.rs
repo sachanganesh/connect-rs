@@ -23,12 +23,12 @@ async fn main() -> anyhow::Result<()> {
     let msg = String::from("Hello world");
     info!("Sending message: {}", msg);
 
-    let envelope = ConnectDatagram::new(65535, msg.into_bytes())?;
+    let envelope = ConnectDatagram::with_tag(65535, msg.into_bytes())?;
     conn.writer().send(envelope).await?;
 
     // wait for the server to reply with an ack
-    if let Some(mut reply) = conn.reader().next().await {
-        let data = reply.take_data().unwrap();
+    if let Some(reply) = conn.reader().next().await {
+        let data = reply.data().to_vec();
         let msg = String::from_utf8(data)?;
 
         info!("Received message: {}", msg);

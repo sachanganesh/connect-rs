@@ -27,8 +27,8 @@ async fn main() -> anyhow::Result<()> {
     let read_task = async_std::task::spawn(async move {
         let mut prev: Option<Number> = None;
 
-        while let Some(mut reply) = reader.next().await {
-            let mut payload = reply.take_data().unwrap();
+        while let Some(reply) = reader.next().await {
+            let mut payload = reply.data().to_vec();
 
             let mut data_bytes: [u8; 2] = [0; 2];
             for i in 0..payload.len() {
@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
     for i in 0..NUM_MESSAGES {
         info!("Sending message: {}", i);
         let data = i.to_be_bytes().to_vec();
-        let envelope = ConnectDatagram::new(i, data)?;
+        let envelope = ConnectDatagram::new(data)?;
         writer.send(envelope).await?;
     }
 

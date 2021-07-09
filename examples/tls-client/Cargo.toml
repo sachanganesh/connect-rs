@@ -8,7 +8,9 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-async-std = { version = "1.9.0", features = ["attributes"] }
+async-std = { version = "1.12.0", features = ["attributes"] }
+async-tls = { version = "0.11.0", default-features = false, features = ["client", "server"] }
+rustls = { version = "0.19.0" }
 env_logger = "0.7"
 log = "0.4"
 

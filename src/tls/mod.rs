@@ -19,14 +19,6 @@ use std::net::SocketAddr;
 pub use client::*;
 pub use listener::*;
 
-#[cfg(feature = "tls")]
-// #[doc(cfg(feature = "tls"))]
-pub use async_tls;
-
-#[cfg(feature = "tls")]
-// #[doc(cfg(feature = "tls"))]
-pub use rustls;
-
 /// Used to differentiate between an outgoing connection ([Client](`TlsConnectionMetadata::Client`))
 /// or incoming connection listener ([Listener](`TlsConnectionMetadata::Listener`)).
 ///

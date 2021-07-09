@@ -28,16 +28,16 @@ async fn main() -> anyhow::Result<()> {
         info!("Handling connection from {}", conn.peer_addr());
 
         task::spawn(async move {
-            while let Some(mut envelope) = conn.reader().next().await {
+            while let Some(envelope) = conn.reader().next().await {
                 // handle message based on intended recipient
-                if envelope.recipient() == 65535 {
+                if envelope.tag() == 65535 {
                     // if recipient is 65535, we do custom processing
-                    let data = envelope.take_data().unwrap();
+                    let data = envelope.data().to_vec();
                     let msg =
                         String::from_utf8(data).expect("could not build String from payload bytes");
                     info!("Received a message \"{}\" from {}", msg, conn.peer_addr());
 
-                    let reply = ConnectDatagram::new(envelope.recipient(), msg.into_bytes())
+                    let reply = ConnectDatagram::with_tag(envelope.tag(), msg.into_bytes())
                         .expect("could not construct new datagram from built String");
 
                     conn.writer()
@@ -49,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
                     // if recipient is anything else, we just send it back
                     warn!(
                         "Received a message for unknown recipient {} from {}",
-                        envelope.recipient(),
+                        envelope.tag(),
                         conn.peer_addr()
                     );
 

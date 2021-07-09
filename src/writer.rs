@@ -102,22 +102,24 @@ impl ConnectionWriter {
                 Poll::Ready(Ok(_)) => {
                     let stream = self.write_stream.as_mut();
 
-                    let pending = self.pending_writes.split_off(0);
-                    let writeable_vec: Vec<IoSlice> =
-                        pending.iter().map(|p| IoSlice::new(p)).collect();
+                    let split = self.pending_writes.split_off(0);
+                    let pending: Vec<IoSlice> = split.iter().map(|p| IoSlice::new(p)).collect();
 
                     trace!("sending pending bytes to network stream");
-                    match stream.poll_write_vectored(cx, writeable_vec.as_slice()) {
-                        Poll::Pending => Poll::Pending,
+                    match stream.poll_write_vectored(cx, pending.as_slice()) {
+                        Poll::Pending => {
+                            self.pending_writes = split;
+                            Poll::Pending
+                        }
 
                         Poll::Ready(Ok(bytes_written)) => {
                             trace!("wrote {} bytes to network stream", bytes_written);
-                            self.pending_writes.clear();
                             Poll::Ready(Ok(()))
                         }
 
                         Poll::Ready(Err(err)) => {
                             error!("Encountered error when writing to network stream");
+                            self.pending_writes = split;
                             Poll::Ready(Err(ConnectionWriteError::IoError(err)))
                         }
                     }
@@ -139,7 +141,7 @@ impl Sink<ConnectDatagram> for ConnectionWriter {
 
     fn poll_ready(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         if self.is_closed() {
-            trace!("connection is closed, cannot send message");
+            trace!("connection is closed - cannot send message");
             Poll::Ready(Err(ConnectionWriteError::ConnectionClosed))
         } else {
             trace!("connection ready to send message");
@@ -150,7 +152,7 @@ impl Sink<ConnectDatagram> for ConnectionWriter {
     fn start_send(mut self: Pin<&mut Self>, item: ConnectDatagram) -> Result<(), Self::Error> {
         trace!("preparing datagram to be queued for sending");
 
-        let buffer = item.encode();
+        let buffer = item.into_bytes();
         let msg_size = buffer.len();
         trace!("serialized pending message into {} bytes", msg_size);
 

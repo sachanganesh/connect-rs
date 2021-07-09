@@ -1,6 +1,6 @@
 [package]
 name = "connect"
-version = "0.2.4"
+version = "0.3.0"
 edition = "2018"
 authors = ["Sachandhan Ganesh <sachan.ganesh@gmail.com>"]
 description = "message queue abstraction over async network streams"
@@ -24,11 +24,11 @@ members = [
 
 
 [features]
-tls = ["async-tls", "rustls"]
+tls = ["async-tls", "rustls", "rustls-pemfile"]
 
 [dependencies]
 anyhow = "1.0"
-async-std = { version = "1.9.0", features = ["unstable"] }
+async-std = { version = "1.12.0", features = ["unstable"] }
 async-stream = "0.3.0"
 bytes = "0.5.5"
 futures = "0.3"
@@ -37,6 +37,7 @@ log = "0.4"
 
 async-tls = { version = "0.11.0", default-features = false, features = ["client", "server"], optional = true }
 rustls = { version = "0.19.0", optional = true }
+rustls-pemfile = { version = "1.0.1", optional = true }
 
 [dev-dependencies]
-async-std = { version = "1.9.0", features = ["attributes"] }
+async-std = { version = "1.12.0", features = ["attributes"] }

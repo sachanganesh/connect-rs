@@ -7,7 +7,7 @@
 [crates-url]: https://crates.io/crates/connect
 [docs-badge]: https://docs.rs/connect/badge.svg
 [docs-url]: https://docs.rs/connect
-
+ 
 This Rust crate provides a simple, brokerless message-queue abstraction over asynchronous
 network streams. It guarantees ordered message delivery and reception, and both TCP and TLS
 transports are supported.
@@ -20,7 +20,7 @@ let mut conn = Connection::tcp_client(ip_address).await?;
 
 // construct a new message
 let msg = String::from("Hello world!");
-let envelope: ConnectDatagram = ConnectDatagram::new(65535, msg.into_bytes())?;
+let envelope: ConnectDatagram = ConnectDatagram::with_tag(65535, msg.into_bytes())?;
 
 // send a message to the server
 conn.writer().send(envelope).await?;
@@ -28,7 +28,7 @@ conn.writer().send(envelope).await?;
 // wait for the echo-server to reply with an echo
 if let Some(mut envelope) = conn.reader().next().await {
     // take the message payload from the envelope
-    let data: Vec<u8> = envelope.take_data().unwrap();
+    let data: Vec<u8> = envelope.data().to_vec();
 
     // reconstruct the original message
     let msg = String::from_utf8(data)?;
@@ -56,9 +56,9 @@ networking and message-queue guarantees to the abstraction.
 
 Connect provides a `ConnectionWriter` and `ConnectionReader` interface to concurrently send
 and receive messages over a network connection. Each user-provided message is prefixed by 8
-bytes, containing a size-prefix (4 bytes), version tag (2 bytes), and recipient tag (2 bytes).
-The size-prefix and version tag are used internally to deserialize messages received from the
-network connection. The recipient tag is intended for crate users to identify the message
+bytes, containing a size-prefix (4 bytes), version field (2 bytes), and tag field (2 bytes).
+The size-prefix and version field are used internally to deserialize messages received from the
+network connection. The tag field is intended for crate users to label the message for a
 recipient, although the library leaves that up to the user's discretion.
 
 Library users must serialize their custom messages into bytes (`Vec<u8>`), prior to
@@ -70,8 +70,8 @@ Requiring crate users to serialize data before constructing a datagram may appea
 gives the developer the freedom to use a serialization format of their choosing. This means that
 library users can do interesting things such as:
 
-- Use the recipient tag to signify which serialization format was used for that message
-- Use the recipient tag to signify the type of message being sent
+- Use the tag field to signify which serialization format was used for that message
+- Use the tag field to signify the type of message being sent
 
 ## Feature Flags
 
@@ -92,4 +92,4 @@ library users can do interesting things such as:
 
 ## Contributing
 
-This crate gladly accepts contributions. Don't hesitate to open issues or PRs.
+This crate gladly accepts contributions. Please don't hesitate to open issues or PRs.

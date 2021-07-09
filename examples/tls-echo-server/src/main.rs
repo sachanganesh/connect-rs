@@ -1,9 +1,8 @@
 use async_std::{io, task};
-use connect::tls::rustls::internal::pemfile::{certs, rsa_private_keys};
-use connect::tls::rustls::{NoClientAuth, ServerConfig};
-use connect::tls::TlsListener;
-use connect::{ConnectDatagram, SinkExt, StreamExt};
+use connect::{tls::TlsListener, ConnectDatagram, SinkExt, StreamExt};
 use log::*;
+use rustls::{Certificate, NoClientAuth, PrivateKey, ServerConfig};
+use rustls_pemfile::{certs, rsa_private_keys};
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
@@ -17,13 +16,17 @@ async fn main() -> anyhow::Result<()> {
 
     let certs = certs(&mut BufReader::new(File::open(cert_path)?))
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid cert"))?;
+    assert!(certs.len() > 0);
+
+    let rustls_certs: Vec<Certificate> = certs.into_iter().map(|v| Certificate(v)).collect();
+    assert!(rustls_certs.len() > 0);
 
     let mut keys = rsa_private_keys(&mut BufReader::new(File::open(key_path)?))
         .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "invalid key"))?;
 
     let mut config = ServerConfig::new(NoClientAuth::new());
     config
-        .set_single_cert(certs, keys.remove(0))
+        .set_single_cert(rustls_certs, PrivateKey(keys.remove(0)))
         .map_err(|err| io::Error::new(io::ErrorKind::InvalidInput, err))?;
 
     // create a server
@@ -35,16 +38,16 @@ async fn main() -> anyhow::Result<()> {
         info!("Handling connection from {}", conn.peer_addr());
 
         task::spawn(async move {
-            while let Some(mut envelope) = conn.reader().next().await {
+            while let Some(envelope) = conn.reader().next().await {
                 // handle message based on intended recipient
-                if envelope.recipient() == 65535 {
+                if envelope.tag() == 65535 {
                     // if recipient is 65535, we do custom processing
-                    let data = envelope.take_data().unwrap();
+                    let data = envelope.data().to_vec();
                     let msg =
                         String::from_utf8(data).expect("could not build String from payload bytes");
                     info!("Received a message \"{}\" from {}", msg, conn.peer_addr());
 
-                    let reply = ConnectDatagram::new(envelope.recipient(), msg.into_bytes())
+                    let reply = ConnectDatagram::with_tag(envelope.tag(), msg.into_bytes())
                         .expect("could not construct new datagram from built String");
 
                     conn.writer()
@@ -56,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
                     // if recipient is anything else, we just send it back
                     warn!(
                         "Received a message for unknown recipient {} from {}",
-                        envelope.recipient(),
+                        envelope.tag(),
                         conn.peer_addr()
                     );
 
